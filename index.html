@@ -1,0 +1,2215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exploradores del Municipio | 2.º Primaria Andalucía (DUA)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka (títulos amigables) y Nunito (alta legibilidad infantil) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Font Awesome para iconografía clara y accesible -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'sans-serif'],
+            display: ['Fredoka', 'sans-serif'],
+          },
+          colors: {
+            andalucia: {
+              green: '#007A33',
+              light: '#E6F4EC',
+              mint: '#10B981',
+            },
+            skygame: {
+              50: '#F0F9FF',
+              100: '#E0F2FE',
+              500: '#0EA5E9',
+              600: '#0284C7',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Estilos base amigables, táctiles y DUA */
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 50%, #fef9c3 100%);
+      min-height: 100vh;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .font-display {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    /* Botón de audio con pulso suave cuando está hablando */
+    @keyframes speakPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
+      50% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
+    }
+    .speaking-active {
+      animation: speakPulse 1.1s infinite;
+      background-color: #0284c7 !important;
+      color: #ffffff !important;
+    }
+
+    /* Animaciones de entrada y gamificación */
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: floatSlow 3s ease-in-out infinite;
+    }
+
+    /* Tarjeta 3D Flip para Flashcards */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .preserve-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    /* Botones 3D táctiles */
+    .btn-3d {
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn-3d:active {
+      transform: translateY(3px);
+    }
+
+    /* Estilos específicos para impresión del Boletín Oficial (window.print) */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-card {
+        box-shadow: none !important;
+        border: 2px solid #cbd5e1 !important;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between selection:bg-amber-200 selection:text-slate-900">
+
+  <!-- BARRA SUPERIOR PERSISTENTE (Controles DUA: Lector de Voz Automático, Silenciar, Inicio, Guía Docente) -->
+  <header class="no-print sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-4 border-emerald-600 shadow-md px-3 py-2 sm:px-6">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <!-- Identidad del juego -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="app.goHome()">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center text-2xl shadow-md">
+          🧭
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold text-emerald-900 leading-tight">Exploradores del Municipio</h1>
+          <p class="text-xs font-bold text-slate-600 hidden sm:block">2.º Primaria · Conocimiento del Medio (Andalucía)</p>
+        </div>
+      </div>
+
+      <!-- Controles de Accesibilidad (DUA) y Navegación rápida -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Interruptor Voz Automática -->
+        <button id="btn-auto-voice" onclick="app.toggleAutoVoice()" title="Activar o desactivar lectura automática en voz alta"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition-all bg-sky-100 border-sky-400 text-sky-900 hover:bg-sky-200">
+          <i id="icon-auto-voice" class="fa-solid fa-volume-high text-base"></i>
+          <span id="label-auto-voice">Voz Auto: SÍ</span>
+        </button>
+
+        <!-- Botón Detener Voz -->
+        <button onclick="speech.stop()" title="Detener lectura de voz"
+          class="p-2.5 rounded-xl bg-rose-100 border-2 border-rose-300 text-rose-800 hover:bg-rose-200 font-bold text-sm" aria-label="Detener voz">
+          <i class="fa-solid fa-volume-xmark text-base"></i>
+        </button>
+
+        <!-- Botón Guía Docente LOMLOE -->
+        <button onclick="app.openCurriculumModal()"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-100 border-2 border-amber-400 text-amber-900 hover:bg-amber-200 font-extrabold text-xs sm:text-sm">
+          <i class="fa-solid fa-book-open-reader"></i>
+          <span class="hidden md:inline">Guía Docente (Orden 30/05/2023)</span>
+          <span class="md:hidden">Currículo</span>
+        </button>
+
+        <!-- Botón Inicio -->
+        <button onclick="app.goHome()" title="Volver al inicio"
+          class="p-2.5 rounded-xl bg-slate-100 border-2 border-slate-300 text-slate-700 hover:bg-slate-200 font-bold text-sm" aria-label="Inicio">
+          <i class="fa-solid fa-house text-base"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL DE VISTAS -->
+  <main id="app-container" class="flex-grow max-w-6xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8">
+    <!-- Las vistas se renderizan dinámicamente aquí -->
+  </main>
+
+  <!-- PIE DE PÁGINA CON AUTORÍA OBLIGATORIA -->
+  <footer class="no-print bg-slate-900 text-white py-4 px-4 mt-8 border-t-4 border-emerald-500">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-3 h-3 rounded-full bg-emerald-400"></span>
+        <p class="font-extrabold text-sm sm:text-base tracking-wide text-emerald-300">
+          Creada por Carlos H. González Ortega (profesaurio)
+        </p>
+      </div>
+      <p class="text-xs text-slate-300 font-semibold">
+        Diseño Universal para el Aprendizaje (DUA) · 2.º E.P. · CEIP Andalucía (Orden de 30 de mayo de 2023)
+      </p>
+    </div>
+  </footer>
+
+  <!-- MODAL DE GUÍA DOCENTE Y ALINEACIÓN CURRICULAR (ORDEN 30 DE MAYO DE 2023) -->
+  <div id="curriculum-modal" class="fixed inset-0 z-50 hidden bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-emerald-600 p-5 sm:p-8 animate-pop">
+      <div class="flex items-start justify-between gap-4 border-b-2 border-slate-200 pb-4 mb-5">
+        <div>
+          <span class="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-xs uppercase tracking-wider mb-1">
+            Normativa Andaluza · LOMLOE
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Guía Docente y Concreción Curricular</h2>
+          <p class="text-sm text-slate-600 font-semibold">
+            Orden de 30 de mayo de 2023 · Primer Ciclo de Educación Primaria (2.º Curso) · Conocimiento del Medio Natural, Social y Cultural.
+          </p>
+        </div>
+        <button onclick="app.closeCurriculumModal()" class="p-3 rounded-2xl bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 font-bold text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Principios DUA aplicados -->
+      <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-4 mb-6">
+        <h3 class="font-bold text-sky-900 text-lg mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-universal-access text-sky-600"></i> Pautas DUA Implementadas (Alumnado sin lectoescritura consolidada)
+        </h3>
+        <ul class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-slate-700 font-semibold">
+          <li class="bg-white p-3 rounded-xl border border-sky-100">
+            <strong class="text-sky-800 block mb-1">1. Representación:</strong> Síntesis de voz (`es-ES`) en enunciados, opciones y retroalimentación + apoyo pictográfico/emoji en cada ítem.
+          </li>
+          <li class="bg-white p-3 rounded-xl border border-sky-100">
+            <strong class="text-sky-800 block mb-1">2. Acción y Expresión:</strong> Respuesta táctil directa de 4 opciones grandes, pistas visuales opcionales y modos de apoyo inclusivos.
+          </li>
+          <li class="bg-white p-3 rounded-xl border border-sky-100">
+            <strong class="text-sky-800 block mb-1">3. Implicación:</strong> Flashcards previas de anticipación vocabular, gamificación por misiones, estrellas y feedback empático formativo.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Tabla de Asociación Saberes - Competencias - Criterios -->
+      <div class="space-y-4">
+        <h3 class="font-bold text-slate-900 text-lg">Mapa Curricular de los 5 Saberes Básicos (Bloque C: Sociedades y territorios)</h3>
+        <div id="curriculum-table-container" class="space-y-3"></div>
+      </div>
+
+      <!-- Configuración del umbral mínimo de superación -->
+      <div class="mt-6 bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 class="font-bold text-amber-900">Criterio de Superación de Mínimos Exigidos (Informe)</h4>
+          <p class="text-xs sm:text-sm text-amber-800 font-semibold">
+            Porcentaje mínimo de aciertos requerido por criterio de evaluación para considerar superado el estándar de aprendizaje:
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="threshold-select" onchange="app.setPassThreshold(this.value)"
+            class="px-4 py-2 rounded-xl border-2 border-amber-500 bg-white font-extrabold text-amber-950 text-base">
+            <option value="50" selected>50% (5 de 10 - Suficiente)</option>
+            <option value="60">60% (6 de 10 - Bien)</option>
+            <option value="70">70% (7 de 10 - Notable)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
+        <p class="text-xs font-extrabold text-emerald-800">Autoría: Creada por Carlos H. González Ortega (profesaurio)</p>
+        <button onclick="app.closeCurriculumModal()" class="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shadow-md">
+          Entendido, volver a la aplicación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE PISTA VISUAL DUA -->
+  <div id="hint-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-amber-50 border-4 border-amber-400 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center animate-pop">
+      <div class="text-5xl mb-3">💡</div>
+      <h3 class="text-2xl font-bold text-amber-900 mb-2">Pista del Explorador</h3>
+      <p id="hint-text" class="text-lg font-bold text-slate-800 mb-5 leading-relaxed"></p>
+      <div class="flex justify-center gap-3">
+        <button onclick="speech.speak(document.getElementById('hint-text').innerText, this)"
+          class="px-5 py-3 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-extrabold flex items-center gap-2 shadow">
+          <i class="fa-solid fa-volume-high"></i> Escuchar pista
+        </button>
+        <button onclick="app.closeHintModal()"
+          class="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold shadow">
+          ¡Gracias!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * 1. GESTOR DE VOZ (WEB SPEECH API - SÍNTESIS EN ESPAÑOL PARA DUA)
+     *************************************************************************/
+    const speech = {
+      synth: window.speechSynthesis,
+      autoEnabled: true,
+      currentBtn: null,
+
+      speak(text, btnElement = null) {
+        if (!this.synth) return;
+        this.stop();
+
+        const cleanText = text.replace(/[\u{1F300}-\u{1FAFF}]/gu, '').trim();
+        if (!cleanText) return;
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.92; // Velocidad ligeramente pausada ideal para 2.º Primaria
+        utterance.pitch = 1.05;
+
+        // Intentar seleccionar voz en español
+        const voices = this.synth.getVoices();
+        const esVoice = voices.find(v => v.lang.includes('es-ES')) || voices.find(v => v.lang.includes('es'));
+        if (esVoice) utterance.voice = esVoice;
+
+        if (btnElement) {
+          this.currentBtn = btnElement;
+          btnElement.classList.add('speaking-active');
+        }
+
+        utterance.onend = () => {
+          if (this.currentBtn) {
+            this.currentBtn.classList.remove('speaking-active');
+            this.currentBtn = null;
+          }
+        };
+
+        utterance.onerror = () => {
+          if (this.currentBtn) {
+            this.currentBtn.classList.remove('speaking-active');
+            this.currentBtn = null;
+          }
+        };
+
+        this.synth.speak(utterance);
+      },
+
+      stop() {
+        if (this.synth) {
+          this.synth.cancel();
+        }
+        if (this.currentBtn) {
+          this.currentBtn.classList.remove('speaking-active');
+          this.currentBtn = null;
+        }
+      }
+    };
+
+    // Cargar voces en navegadores que las cargan de forma asíncrona
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    /*************************************************************************
+     * 2. CURRÍCULO OFICIAL ANDALUCÍA (ORDEN DE 30 DE MAYO DE 2023 - 1.ER CICLO)
+     *************************************************************************/
+    const SABERES_CURRICULO = [
+      {
+        id: 'saber1',
+        numero: 1,
+        titulo: 'Localidad y municipio',
+        tituloCorto: 'Localidad y Municipio',
+        icono: '🏘️',
+        color: 'emerald',
+        bgGradient: 'from-emerald-500 to-teal-600',
+        badgeBg: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+        saberCodigo: 'CM.01.C.3.1',
+        saberDescripcion: 'La localidad y el municipio: el barrio, la calle, los vecinos y el sentido de pertenencia al entorno cercano.',
+        competenciaEspecifica: 'CE.5. Identificar las características de los diferentes elementos o sistemas del medio natural, social y cultural, analizando su organización y propiedades y estableciendo relaciones entre los mismos, para reconocer el valor del patrimonio cultural y natural, conservarlo y mejorarlo.',
+        criterioCodigo: 'Criterio 5.1',
+        criterioDescripcion: 'Reconocer las características, la organización y las propiedades de los elementos del medio natural, social y cultural a través de la indagación, utilizando las herramientas y procesos adecuados de forma pautada (identificando calles, barrios, localidades y su municipio).'
+      },
+      {
+        id: 'saber2',
+        numero: 2,
+        titulo: 'Pueblos y ciudades',
+        tituloCorto: 'Pueblos y Ciudades',
+        icono: '🏙️',
+        color: 'sky',
+        bgGradient: 'from-sky-500 to-blue-600',
+        badgeBg: 'bg-sky-100 text-sky-900 border-sky-300',
+        saberCodigo: 'CM.01.C.3.2',
+        saberDescripcion: 'Pueblos y ciudades: características principales, tipos de edificios, tráfico, población y paisaje rural frente a urbano.',
+        competenciaEspecifica: 'CE.5. Identificar las características de los diferentes elementos o sistemas del medio natural, social y cultural, analizando su organización y propiedades.',
+        criterioCodigo: 'Criterio 5.2',
+        criterioDescripcion: 'Reconocer conexiones sencillas y directas entre diferentes elementos del medio natural, social y cultural por medio de la observación, la manipulación y la experimentación (comparando la vida, edificios y entorno en pueblos y ciudades).'
+      },
+      {
+        id: 'saber3',
+        numero: 3,
+        titulo: 'Organización del municipio',
+        tituloCorto: 'El Ayuntamiento',
+        icono: '🏛️',
+        color: 'amber',
+        bgGradient: 'from-amber-500 to-orange-600',
+        badgeBg: 'bg-amber-100 text-amber-900 border-amber-300',
+        saberCodigo: 'CM.01.C.2.1',
+        saberDescripcion: 'Organización social y política del municipio: el Ayuntamiento, el alcalde o la alcaldesa, los concejales y las elecciones municipales.',
+        competenciaEspecifica: 'CE.6. Identificar las causas y consecuencias de la intervención humana en el entorno, desde los puntos de vista social, económico, cultural, tecnológico y ambiental, para mejorar la capacidad de afrontar problemas, buscar soluciones y actuar de manera individual y colaborativa en su resolución.',
+        criterioCodigo: 'Criterio 6.1',
+        criterioDescripcion: 'Mostrar estilos de vida sostenible y valorar la importancia del respeto, los cuidados, la corresponsabilidad y la protección de los elementos y seres del planeta, identificando la función de las instituciones municipales y el Ayuntamiento en la mejora de la localidad.'
+      },
+      {
+        id: 'saber4',
+        numero: 4,
+        titulo: 'Principales servicios públicos',
+        tituloCorto: 'Servicios Públicos',
+        icono: '🚒',
+        color: 'rose',
+        bgGradient: 'from-rose-500 to-red-600',
+        badgeBg: 'bg-rose-100 text-rose-900 border-rose-300',
+        saberCodigo: 'CM.01.C.2.2',
+        saberDescripcion: 'Los servicios públicos municipales: emergencias (policía, bomberos), educativos (colegios, bibliotecas), sanitarios (centros de salud, hospitales), transporte, limpieza y servicios sociales y culturales.',
+        competenciaEspecifica: 'CE.5. Identificar las características de los diferentes elementos o sistemas del medio natural, social y cultural, analizando su organización y propiedades y estableciendo relaciones entre los mismos.',
+        criterioCodigo: 'Criterio 5.3',
+        criterioDescripcion: 'Mostrar actitudes de respeto ante el patrimonio natural y cultural, reconociéndolo como un bien común y valorando la labor de los servicios públicos que cuidan, protegen y ayudan a todas las personas del municipio.'
+      },
+      {
+        id: 'saber5',
+        numero: 5,
+        titulo: 'Importancia de las normas',
+        tituloCorto: 'Normas y Convivencia',
+        icono: '🚦',
+        color: 'purple',
+        bgGradient: 'from-purple-500 to-indigo-600',
+        badgeBg: 'bg-purple-100 text-purple-900 border-purple-300',
+        saberCodigo: 'CM.01.C.1.3',
+        saberDescripcion: 'La vida en comunidad: importancia de las normas de convivencia, derechos y deberes de los vecinos y de los niños y niñas, seguridad vial y cuidado del entorno.',
+        competenciaEspecifica: 'CE.6. Identificar las causas y consecuencias de la intervención humana en el entorno, desde los puntos de vista social, económico, cultural, tecnológico y ambiental, para actuar de manera individual y colaborativa.',
+        criterioCodigo: 'Criterio 6.2',
+        criterioDescripcion: 'Identificar y respetar las normas básicas de convivencia, seguridad vial y cuidado del entorno cercano, reconociendo los derechos y deberes propios y de los demás para favorecer una convivencia pacífica.'
+      }
+    ];
+
+    /*************************************************************************
+     * 3. FLASHCARDS DE VOCABULARIO (20 TARJETAS - 4 POR CADA SABER BÁSICO)
+     *************************************************************************/
+    const FLASHCARDS_DATA = [
+      // Saber 1: Localidad y municipio
+      { saberId: 'saber1', palabra: 'Localidad', emoji: '🏡', definicion: 'Es el lugar donde vivimos, con sus calles, plazas, casas y edificios. Puede ser un pueblo o una ciudad.' },
+      { saberId: 'saber1', palabra: 'Municipio', emoji: '🗺️', definicion: 'Es el territorio formado por una o varias localidades y los campos que las rodean, gobernados por el mismo Ayuntamiento.' },
+      { saberId: 'saber1', palabra: 'Barrio', emoji: '🏘️', definicion: 'Es cada una de las partes o zonas en las que se divide una localidad grande o una ciudad.' },
+      { saberId: 'saber1', palabra: 'Vecinos y vecinas', emoji: '👨‍👩‍👧‍👦', definicion: 'Son todas las personas que viven en nuestro mismo edificio, barrio, pueblo o ciudad.' },
+
+      // Saber 2: Pueblos y ciudades
+      { saberId: 'saber2', palabra: 'Pueblo', emoji: '🌾', definicion: 'Es una localidad pequeña con casas bajas, calles tranquilas, pocos habitantes y rodeada de naturaleza o campos.' },
+      { saberId: 'saber2', palabra: 'Ciudad', emoji: '🏙️', definicion: 'Es una localidad muy grande con edificios altos, avenidas anchas, mucho tráfico y miles de habitantes.' },
+      { saberId: 'saber2', palabra: 'Tráfico', emoji: '🚗', definicion: 'Es la circulación de coches, autobuses y motos por las calles y carreteras. En las ciudades hay mucho tráfico.' },
+      { saberId: 'saber2', palabra: 'Avenida', emoji: '🛣️', definicion: 'Es una calle muy ancha y larga de una ciudad por la que pasan muchos vehículos y personas.' },
+
+      // Saber 3: Organización del municipio
+      { saberId: 'saber3', palabra: 'Ayuntamiento', emoji: '🏛️', definicion: 'Es el edificio y el grupo de personas que organizan el municipio y cuidan de que todo funcione bien.' },
+      { saberId: 'saber3', palabra: 'Alcalde o Alcaldesa', emoji: '👩‍💼', definicion: 'Es la persona que dirige el Ayuntamiento y representa a todos los vecinos y vecinas del municipio.' },
+      { saberId: 'saber3', palabra: 'Concejales', emoji: '🤝', definicion: 'Son las personas que trabajan en el Ayuntamiento ayudando al alcalde o alcaldesa en limpieza, parques, deportes o cultura.' },
+      { saberId: 'saber3', palabra: 'Elecciones municipales', emoji: '🗳️', definicion: 'Es cuando los vecinos mayores de edad votan cada cuatro años para elegir a los concejales y al alcalde o alcaldesa.' },
+
+      // Saber 4: Principales servicios públicos
+      { saberId: 'saber4', palabra: 'Servicios de Emergencias', emoji: '🚒', definicion: 'Son la Policía y los Bomberos. Nos protegen, ayudan si hay peligro y apagan incendios.' },
+      { saberId: 'saber4', palabra: 'Servicios Sanitarios', emoji: '🏥', definicion: 'Son los centros de salud y hospitales, donde médicos y enfermeras nos curan cuando estamos enfermos.' },
+      { saberId: 'saber4', palabra: 'Servicios Educativos', emoji: '🏫', definicion: 'Son los colegios, institutos y bibliotecas públicas donde aprendemos, leemos y jugamos.' },
+      { saberId: 'saber4', palabra: 'Limpieza y Transporte', emoji: '🚛', definicion: 'Los barrenderos y basureros mantienen limpias las calles, y los autobuses llevan a las personas de un lugar a otro.' },
+
+      // Saber 5: Importancia de las normas
+      { saberId: 'saber5', palabra: 'Normas de convivencia', emoji: '📜', definicion: 'Son reglas que debemos cumplir todas las personas para llevarnos bien, respetarnos y vivir en paz.' },
+      { saberId: 'saber5', palabra: 'Derechos', emoji: '💛', definicion: 'Son las cosas buenas que todas las personas merecemos tener, como ir al colegio, ir al médico o jugar en el parque.' },
+      { saberId: 'saber5', palabra: 'Deberes', emoji: '🧹', definicion: 'Son nuestras responsabilidades, como respetar a los demás, tirar la basura a la papelera y cuidar los parques.' },
+      { saberId: 'saber5', palabra: 'Seguridad Vial', emoji: '🚸', definicion: 'Son las normas de la calle, como cruzar por el paso de peatones cuando el semáforo está en verde.' }
+    ];
+
+    /*************************************************************************
+     * 4. BANCO COMPLETO DE 50 ACTIVIDADES (10 POR CADA UNO DE LOS 5 SABERES)
+     *************************************************************************/
+    const PREGUNTAS_BANCO = [
+      // =====================================================================
+      // SABER 1: LOCALIDAD Y MUNICIPIO (10 PREGUNTAS)
+      // =====================================================================
+      {
+        id: 's1_q1', saberId: 'saber1', escena: '🏡🏘️🏫',
+        pregunta: '¿Cómo se llama el lugar donde vivimos, formado por casas, calles y plazas?',
+        pista: 'Puede ser un pueblo o una ciudad. Empieza por LO...',
+        opciones: [
+          { texto: 'Localidad', emoji: '🏘️' },
+          { texto: 'Planeta', emoji: '🪐' },
+          { texto: 'Océano', emoji: '🌊' },
+          { texto: 'Montaña', emoji: '⛰️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Genial! La localidad es el pueblo o la ciudad donde vivimos con nuestras calles y plazas.',
+        explicacionError: '¡Casi! Un planeta o un océano son enormes. El lugar con calles y plazas donde vivimos se llama Localidad.'
+      },
+      {
+        id: 's1_q2', saberId: 'saber1', escena: '🗺️🌾🏡',
+        pregunta: '¿Qué es un municipio?',
+        pista: 'Incluye el pueblo o ciudad y todos los campos de alrededor.',
+        opciones: [
+          { texto: 'Solo mi habitación', emoji: '🛏️' },
+          { texto: 'La localidad y el territorio de alrededor', emoji: '🗺️' },
+          { texto: 'Un autobús escolar', emoji: '🚌' },
+          { texto: 'Un parque de atracciones', emoji: '🎡' }
+        ],
+        correcta: 1,
+        explicacionOk: '¡Exacto! El municipio abarca la localidad y todo el territorio natural o de campo que la rodea.',
+        explicacionError: 'Recuerda: el municipio es mucho más grande que una habitación o un parque; es toda la localidad y el territorio que gobierna su Ayuntamiento.'
+      },
+      {
+        id: 's1_q3', saberId: 'saber1', escena: '🏙️➡️🏘️',
+        pregunta: 'Cuando una ciudad es muy grande, se divide en zonas más pequeñas llamadas...',
+        pista: 'En tu ciudad seguramente vives en uno. Por ejemplo, el barrio de Triana o el barrio del Centro.',
+        opciones: [
+          { texto: 'Barrios', emoji: '🏘️' },
+          { texto: 'Ríos', emoji: '🏞️' },
+          { texto: 'Nubes', emoji: '☁️' },
+          { texto: 'Bosques', emoji: '🌲' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Muy bien! Las localidades grandes se dividen en barrios, cada uno con sus tiendas, calles y parques.',
+        explicacionError: '¡Fíjate bien! Las zonas en las que se divide una ciudad se llaman barrios.'
+      },
+      {
+        id: 's1_q4', saberId: 'saber1', escena: '👋👨‍👩‍👧‍👦🏠',
+        pregunta: '¿Cómo llamamos a las personas que viven en nuestro mismo barrio o localidad?',
+        pista: 'Cuando nos los encontramos en el portal o en la calle les decimos: "¡Hola, ...!"',
+        opciones: [
+          { texto: 'Astronautas', emoji: '👩‍🚀' },
+          { texto: 'Vecinos y vecinas', emoji: '👨‍👩‍👧‍👦' },
+          { texto: 'Turistas', emoji: '📸' },
+          { texto: 'Piratas', emoji: '🏴‍☠️' }
+        ],
+        correcta: 1,
+        explicacionOk: '¡Estupendo! Todos los habitantes de nuestra localidad son nuestros vecinos y vecinas.',
+        explicacionError: 'Los turistas solo están de visita. Las personas que viven en nuestra localidad son nuestros vecinos y vecinas.'
+      },
+      {
+        id: 's1_q5', saberId: 'saber1', escena: '✉️📮🏠',
+        pregunta: 'Para que el cartero encuentre nuestra casa en la localidad, ¿qué necesita saber?',
+        pista: 'Cada calle tiene un nombre y cada casa tiene un número.',
+        opciones: [
+          { texto: 'Nuestro color favorito', emoji: '🎨' },
+          { texto: 'El nombre de la calle y el número', emoji: '🪧' },
+          { texto: 'Lo que hemos desayunado', emoji: '🥛' },
+          { texto: 'El nombre de nuestra mascota', emoji: '🐶' }
+        ],
+        correcta: 1,
+        explicacionOk: '¡Perfecto! La dirección postal tiene el nombre de la calle, el número de la casa y el nombre de la localidad.',
+        explicacionError: 'Para llegar a una casa no basta saber el color favorito; necesitamos la dirección con el nombre de la calle y el número.'
+      },
+      {
+        id: 's1_q6', saberId: 'saber1', escena: '⛲🌳ベンチ',
+        pregunta: 'Es un espacio abierto y amplio dentro de la localidad donde suelen haber bancos, árboles o una fuente:',
+        pista: 'Allí nos reunimos para jugar y charlar. Empieza por PLA...',
+        opciones: [
+          { texto: 'La plaza', emoji: '⛲' },
+          { texto: 'El garaje', emoji: '🚗' },
+          { texto: 'La cocina', emoji: '🍳' },
+          { texto: 'El túnel', emoji: '🚇' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Fantástico! La plaza es el punto de encuentro más alegre de los pueblos y barrios.',
+        explicacionError: '¡Piénsalo bien! Un garaje o un túnel son lugares cerrados. El lugar abierto con bancos y fuente es la plaza.'
+      },
+      {
+        id: 's1_q7', saberId: 'saber1', escena: '🚶‍♂️🛣️🚗',
+        pregunta: '¿Por qué parte de la calle deben caminar las personas (peatones) para ir seguras?',
+        pista: 'Está a los lados de la calle, un poco más elevada que la carretera.',
+        opciones: [
+          { texto: 'Por medio de la calzada', emoji: '🚗' },
+          { texto: 'Por la acera', emoji: '🚶‍♂️' },
+          { texto: 'Por encima de los coches', emoji: '🚙' },
+          { texto: 'Por las vías del tren', emoji: '🚆' }
+        ],
+        correcta: 1,
+        explicacionOk: '¡Bravo! Los peatones siempre debemos caminar por la acera para estar protegidos de los coches.',
+        explicacionError: '¡Cuidado! Por la calzada y las vías van los vehículos. Las personas caminamos siempre por la acera.'
+      },
+      {
+        id: 's1_q8', saberId: 'saber1', escena: '🗺️🧭📍',
+        pregunta: '¿Qué dibujo nos ayuda a ver desde arriba las calles, plazas y edificios de una localidad?',
+        pista: 'Sirve para no perdernos cuando buscamos una calle.',
+        opciones: [
+          { texto: 'Un plano de la localidad', emoji: '🗺️' },
+          { texto: 'Una receta de cocina', emoji: '🍰' },
+          { texto: 'Un termómetro', emoji: '🌡️' },
+          { texto: 'Una partitura musical', emoji: '🎵' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Genial! El plano representa las calles y edificios vistos desde arriba para orientarnos.',
+        explicacionError: 'Una receta o un termómetro no muestran calles. El dibujo que muestra las calles desde arriba es el plano.'
+      },
+      {
+        id: 's1_q9', saberId: 'saber1', escena: '🏘️🌾🏛️',
+        pregunta: '¿Puede un mismo municipio tener varios pueblos pequeños o aldeas dentro de su territorio?',
+        pista: 'En Andalucía muchos municipios tienen un pueblo principal y varias aldeas o pedanías cerca.',
+        opciones: [
+          { texto: 'No, nunca jamás', emoji: '❌' },
+          { texto: 'Sí, varias localidades pueden formar un municipio', emoji: '✅' },
+          { texto: 'Solo si están en la Luna', emoji: '🌙' },
+          { texto: 'Solo si tienen aeropuerto', emoji: '✈️' }
+        ],
+        correcta: 1,
+        explicacionOk: '¡Muy bien! Un municipio puede estar formado por una sola localidad o por varias localidades cercanas.',
+        explicacionError: 'En realidad, muchos municipios incluyen varias aldeas o localidades pequeñas bajo un mismo Ayuntamiento.'
+      },
+      {
+        id: 's1_q10', saberId: 'saber1', escena: '🎉💃🎸',
+        pregunta: '¿Qué celebran juntos los vecinos y vecinas de una localidad una vez al año con música y alegría?',
+        pista: 'En Andalucía las llamamos ferias o fiestas patronales.',
+        opciones: [
+          { texto: 'Las fiestas o feria de la localidad', emoji: '🎡' },
+          { texto: 'El examen de matemáticas', emoji: '📝' },
+          { texto: 'La hora de dormir', emoji: '😴' },
+          { texto: 'Limpiar los armarios', emoji: '🧹' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Olé! Las fiestas y ferias locales unen a todos los vecinos y celebran nuestras tradiciones.',
+        explicacionError: '¡Qué divertido sería celebrar un examen! Pero lo que une a toda la localidad son sus fiestas o su feria.'
+      },
+
+      // =====================================================================
+      // SABER 2: PUEBLOS Y CIUDADES (10 PREGUNTAS)
+      // =====================================================================
+      {
+        id: 's2_q1', saberId: 'saber2', escena: '🏡🌾🐑',
+        pregunta: '¿Cuál de estas características pertenece a un PUEBLO?',
+        pista: 'Piensa en un lugar pequeño, tranquilo y rodeado de naturaleza.',
+        opciones: [
+          { texto: 'Tiene rascacielos muy altos', emoji: '🏙️' },
+          { texto: 'Tiene pocos habitantes y casas bajas', emoji: '🏡' },
+          { texto: 'Tiene líneas de metro subterráneo', emoji: '🚇' },
+          { texto: 'Tiene grandes atascos de coches', emoji: '🚗' }
+        ],
+        correcta: 1,
+        explicacionOk: '¡Correcto! Los pueblos son localidades pequeñas con casas bajas, pocos habitantes y mucha tranquilidad.',
+        explicacionError: 'Los rascacielos, el metro y los atascos son propios de las ciudades. En los pueblos hay pocos habitantes y casas bajas.'
+      },
+      {
+        id: 's2_q2', saberId: 'saber2', escena: '🏙️🚌🚦',
+        pregunta: '¿Cuál de estas características es propia de una CIUDAD?',
+        pista: 'En las ciudades viven miles o millones de personas.',
+        opciones: [
+          { texto: 'Hay muchos edificios altos y avenidas', emoji: '🏢' },
+          { texto: 'Viven muy pocas personas', emoji: '👤' },
+          { texto: 'Solo hay caminos de tierra', emoji: '🥾' },
+          { texto: 'No existen los semáforos', emoji: '🚫' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Estupendo! Las ciudades tienen muchos habitantes, edificios altos, grandes avenidas y muchos servicios.',
+        explicacionError: 'En las ciudades viven muchísimas personas y por eso se construyen edificios altos y avenidas anchas.'
+      },
+      {
+        id: 's2_q3', saberId: 'saber2', escena: '🚜🌻🐄',
+        pregunta: '¿En qué trabajos suelen trabajar muchas personas que viven en los pueblos?',
+        pista: 'Están en contacto con la tierra, las plantas y los animales.',
+        opciones: [
+          { texto: 'Agricultura y ganadería', emoji: '🚜' },
+          { texto: 'Pilotos de naves espaciales', emoji: '🚀' },
+          { texto: 'Conductores de metro', emoji: '🚇' },
+          { texto: 'Limpiadores de rascacielos', emoji: '🏙️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Muy bien! En los pueblos mucha gente trabaja cultivando el campo (agricultura) o cuidando animales (ganadería).',
+        explicacionError: 'Como los pueblos están rodeados de campo, los trabajos más habituales son la agricultura y la ganadería.'
+      },
+      {
+        id: 's2_q4', saberId: 'saber2', escena: '🚗🚕🚌🚚',
+        pregunta: '¿Dónde hay más tráfico de coches, autobuses y ruido?',
+        pista: 'Ocurre donde viven muchísimas personas juntas.',
+        opciones: [
+          { texto: 'En la ciudad', emoji: '🏙️' },
+          { texto: 'En una aldea pequeña', emoji: '🏡' },
+          { texto: 'En medio del bosque', emoji: '🌲' },
+          { texto: 'En lo alto de una sierra', emoji: '⛰️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Exacto! En la ciudad circulan miles de vehículos cada día y por eso hay más tráfico y ruido.',
+        explicacionError: 'En el bosque o en una aldea casi no hay coches. Es en la ciudad donde hay mucho tráfico.'
+      },
+      {
+        id: 's2_q5', saberId: 'saber2', escena: '🏥🎓🎭🏟️',
+        pregunta: '¿Por qué en las ciudades hay grandes hospitales, universidades y museos?',
+        pista: 'Porque tienen que atender a muchísima población.',
+        opciones: [
+          { texto: 'Porque viven muchas personas y necesitan grandes servicios', emoji: '👨‍👩‍👧‍👦' },
+          { texto: 'Porque en los pueblos no les gusta leer', emoji: '📕' },
+          { texto: 'Porque en los pueblos está prohibido construir', emoji: '🚧' },
+          { texto: 'Porque las ciudades no tienen casas', emoji: '⛺' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Genial! Como en la ciudad vive mucha gente, se construyen servicios grandes como hospitales y universidades.',
+        explicacionError: 'Las ciudades tienen grandes hospitales y museos porque viven miles de habitantes que los necesitan.'
+      },
+      {
+        id: 's2_q6', saberId: 'saber2', escena: '🌳🌬️🐦',
+        pregunta: '¿Dónde suele estar el aire más limpio y se escucha más el canto de los pájaros?',
+        pista: 'Hay menos coches y fábricas, y más árboles y campos.',
+        opciones: [
+          { texto: 'En el pueblo', emoji: '🌿' },
+          { texto: 'En el centro de una gran ciudad', emoji: '🏭' },
+          { texto: 'En una autopista con atasco', emoji: '🚗' },
+          { texto: 'En un aparcamiento subterráneo', emoji: '🅿️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Bravo! En los pueblos hay menos contaminación y estamos muy cerca de la naturaleza.',
+        explicacionError: 'Donde hay muchos coches y fábricas el aire está más contaminado. En el pueblo el aire es más puro y tranquilo.'
+      },
+      {
+        id: 's2_q7', saberId: 'saber2', escena: '🛣️🌆🚶‍♀️',
+        pregunta: '¿Cómo se llaman las calles muy anchas, largas y con muchos carriles de las ciudades?',
+        pista: 'Suelen tener árboles en los lados y muchas tiendas. Empieza por AVE...',
+        opciones: [
+          { texto: 'Avenidas', emoji: '🛣️' },
+          { texto: 'Senderos', emoji: '🥾' },
+          { texto: 'Callejones sin salida', emoji: '🧱' },
+          { texto: 'Puentes levadizos', emoji: '🌉' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Fantástico! Las avenidas son las calles principales, anchas y largas de las ciudades.',
+        explicacionError: 'Los senderos están en el campo. Las calles muy anchas y largas de las ciudades se llaman avenidas.'
+      },
+      {
+        id: 's2_q8', saberId: 'saber2', escena: '🏘️🤝😊',
+        pregunta: 'En un pueblo pequeño, ¿cómo suele ser la relación entre los vecinos?',
+        pista: 'Como viven pocas personas, es fácil verse todos los días en la plaza.',
+        opciones: [
+          { texto: 'Casi todos se conocen y se saludan', emoji: '🤝' },
+          { texto: 'Nadie se habla nunca', emoji: '🤐' },
+          { texto: 'Solo se ven por televisión', emoji: '📺' },
+          { texto: 'No salen nunca de casa', emoji: '🔒' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Así es! En los pueblos la vida es cercana y casi todos los vecinos se conocen por su nombre.',
+        explicacionError: 'Al vivir menos gente en un pueblo, los vecinos se conocen mucho entre sí y se saludan por la calle.'
+      },
+      {
+        id: 's2_q9', saberId: 'saber2', escena: '🏢🏢🏢',
+        pregunta: '¿Por qué en las ciudades los edificios tienen muchos pisos hacia arriba?',
+        pista: 'Muchísimas familias necesitan vivir en el mismo espacio.',
+        opciones: [
+          { texto: 'Para que vivan muchas familias ocupando menos terreno', emoji: '🏢' },
+          { texto: 'Para tocar las nubes con la mano', emoji: '☁️' },
+          { texto: 'Porque no saben hacer casas de un piso', emoji: '🔨' },
+          { texto: 'Para que vivan solo los pájaros', emoji: '🐦' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Qué buena respuesta! Como hay muchos habitantes, se construyen bloques de pisos hacia arriba para aprovechar el espacio.',
+        explicacionError: 'Los edificios altos permiten que muchas familias puedan vivir cerca unas de otras en la ciudad.'
+      },
+      {
+        id: 's2_q10', saberId: 'saber2', escena: '🏡❤️🏙️',
+        pregunta: '¿Qué tienen en común todos los pueblos y todas las ciudades?',
+        pista: 'Ambos son lugares donde viven personas en comunidad.',
+        opciones: [
+          { texto: 'Que son localidades donde viven vecinos con derechos y deberes', emoji: '❤️' },
+          { texto: 'Que todos tienen playa', emoji: '🏖️' },
+          { texto: 'Que todos tienen rascacielos', emoji: '🏙️' },
+          { texto: 'Que en todos nieva en verano', emoji: '❄️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Sobresaliente! Tanto los pueblos como las ciudades son localidades valiosas donde convivimos en comunidad.',
+        explicacionError: 'No todos los pueblos o ciudades tienen playa ni rascacielos, pero en todos viven personas que forman una comunidad.'
+      },
+
+      // =====================================================================
+      // SABER 3: ORGANIZACIÓN DEL MUNICIPIO (10 PREGUNTAS)
+      // =====================================================================
+      {
+        id: 's3_q1', saberId: 'saber3', escena: '🏛️🇪🇸💚',
+        pregunta: '¿Cómo se llama el edificio y la institución que gobierna y organiza el municipio?',
+        pista: 'Suele estar en la plaza principal y tiene las banderas en el balcón.',
+        opciones: [
+          { texto: 'El Ayuntamiento', emoji: '🏛️' },
+          { texto: 'El supermercado', emoji: '🛒' },
+          { texto: 'El polideportivo', emoji: '🏀' },
+          { texto: 'La estación de tren', emoji: '🚉' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Exacto! El Ayuntamiento es la casa de todos los vecinos y donde se organiza el municipio.',
+        explicacionError: 'En el supermercado compramos comida, pero el lugar desde donde se gobierna y organiza el municipio es el Ayuntamiento.'
+      },
+      {
+        id: 's3_q2', saberId: 'saber3', escena: '👩‍💼👨‍💼🏛️',
+        pregunta: '¿Quién es la persona que dirige el Ayuntamiento y representa a todo el municipio?',
+        pista: 'Puede ser un hombre o una mujer elegido para dirigir la localidad.',
+        opciones: [
+          { texto: 'El alcalde o la alcaldesa', emoji: '👩‍💼' },
+          { texto: 'El capitán de un barco', emoji: '⛵' },
+          { texto: 'El árbitro de fútbol', emoji: '⚽' },
+          { texto: 'El panadero del barrio', emoji: '🥖' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Muy bien! El alcalde o la alcaldesa dirige el Ayuntamiento y trabaja para mejorar el municipio.',
+        explicacionError: 'Cada trabajo es importante, pero la máxima autoridad que dirige el Ayuntamiento es el alcalde o la alcaldesa.'
+      },
+      {
+        id: 's3_q3', saberId: 'saber3', escena: '🤝📋🏛️',
+        pregunta: '¿Quiénes ayudan al alcalde o a la alcaldesa a organizar la limpieza, los parques o la cultura?',
+        pista: 'Forman parte del equipo del Ayuntamiento. Empieza por CON...',
+        opciones: [
+          { texto: 'Los concejales y concejalas', emoji: '🤝' },
+          { texto: 'Los payasos del circo', emoji: '🤡' },
+          { texto: 'Los astronautas', emoji: '👨‍🚀' },
+          { texto: 'Los jugadores de tenis', emoji: '🎾' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Estupendo! Los concejales y concejalas se encargan de cada área del municipio (parques, deportes, limpieza...).',
+        explicacionError: 'Al alcalde o alcaldesa le ayuda un equipo de personas llamadas concejales y concejalas.'
+      },
+      {
+        id: 's3_q4', saberId: 'saber3', escena: '🗳️✅👥',
+        pregunta: '¿Cómo se eligen los concejales y el alcalde o alcaldesa de un municipio?',
+        pista: 'Los vecinos adultos meten su voto en una urna cada cuatro años.',
+        opciones: [
+          { texto: 'Mediante las elecciones municipales', emoji: '🗳️' },
+          { texto: 'Jugando a piedra, papel o tijera', emoji: '✌️' },
+          { texto: 'Haciendo una carrera de sacos', emoji: '🏃' },
+          { texto: 'El que tenga el coche más grande', emoji: '🚙' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Genial! En democracia elegimos a nuestros representantes votando en las elecciones municipales.',
+        explicacionError: 'No se elige por suerte ni por carreras; los ciudadanos mayores de 18 años votan en las elecciones municipales.'
+      },
+      {
+        id: 's3_q5', saberId: 'saber3', escena: '🎂🔞🗳️',
+        pregunta: '¿Quiénes pueden votar en las elecciones municipales para elegir al Ayuntamiento?',
+        pista: 'Cuando cumplas esa edad tú también podrás votar.',
+        opciones: [
+          { texto: 'Los vecinos y vecinas mayores de 18 años', emoji: '🪪' },
+          { texto: 'Solo los bebés de un año', emoji: '👶' },
+          { texto: 'Solo los perros y gatos', emoji: '🐕' },
+          { texto: 'Solo los niños de primero', emoji: '🎒' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Correcto! Todas las personas adultas mayores de 18 años tienen derecho a votar en las elecciones.',
+        explicacionError: 'Para votar en las elecciones hace falta ser mayor de edad, es decir, tener 18 años o más.'
+      },
+      {
+        id: 's3_q6', saberId: 'saber3', escena: '💡🌳🚧',
+        pregunta: 'Si en nuestro parque se rompe un columpio o se funde una farola, ¿quién se encarga de arreglarlo?',
+        pista: 'Es quien cuida las calles, parques y luces del municipio.',
+        opciones: [
+          { texto: 'El Ayuntamiento', emoji: '🏛️' },
+          { texto: 'La tienda de juguetes', emoji: '🧸' },
+          { texto: 'El cine del centro', emoji: '🎬' },
+          { texto: 'La heladería', emoji: '🍦' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Bravo! El Ayuntamiento se encarga de mantener en buen estado los parques, las farolas y las calles.',
+        explicacionError: 'Las tiendas venden productos, pero el mantenimiento de parques y farolas públicas es tarea del Ayuntamiento.'
+      },
+      {
+        id: 's3_q7', saberId: 'saber3', escena: '🗣️🏛️📝',
+        pregunta: '¿Cómo se llama la reunión donde el alcalde y los concejales debaten y toman decisiones para el pueblo?',
+        pista: 'Se reúnen en el salón de plenos del Ayuntamiento.',
+        opciones: [
+          { texto: 'El Pleno Municipal', emoji: '🗣️' },
+          { texto: 'El recreo del colegio', emoji: '⚽' },
+          { texto: 'Una fiesta de cumpleaños', emoji: '🎂' },
+          { texto: 'Un partido de baloncesto', emoji: '🏀' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Fantástico! En el Pleno Municipal se reúnen el alcalde o alcaldesa y los concejales para aprobar mejoras.',
+        explicacionError: 'Esa reunión oficial del Ayuntamiento donde se toman acuerdos se llama Pleno Municipal.'
+      },
+      {
+        id: 's3_q8', saberId: 'saber3', escena: '💌👧🏛️',
+        pregunta: '¿Pueden los niños y niñas enviar ideas o cartas al Ayuntamiento para mejorar su barrio?',
+        pista: '¡Claro! Tu opinión también cuenta para hacer un municipio mejor.',
+        opciones: [
+          { texto: 'Sí, podemos proponer ideas y cuidar nuestro entorno', emoji: '💌' },
+          { texto: 'No, los niños tienen prohibido hablar', emoji: '🤐' },
+          { texto: 'Solo si sabemos volar', emoji: '🦸' },
+          { texto: 'Nunca nos hacen caso', emoji: '😞' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Por supuesto! Muchos Ayuntamientos tienen consejos infantiles para escuchar las ideas de los niños y niñas.',
+        explicacionError: '¡Sí podemos! Los niños y niñas somos ciudadanos importantes y podemos enviar propuestas al Ayuntamiento.'
+      },
+      {
+        id: 's3_q9', saberId: 'saber3', escena: '📅4️⃣🗳️',
+        pregunta: '¿Cada cuántos años se celebran las elecciones municipales en España?',
+        pista: 'Es el mismo número que las estaciones del año.',
+        opciones: [
+          { texto: 'Cada 4 años', emoji: '4️⃣' },
+          { texto: 'Todos los lunes', emoji: '📅' },
+          { texto: 'Cada 100 años', emoji: '💯' },
+          { texto: 'Cada 2 horas', emoji: '⏰' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Exacto! Las elecciones municipales se celebran cada 4 años.',
+        explicacionError: 'No se vota cada semana ni cada siglo; en España votamos al Ayuntamiento cada 4 años.'
+      },
+      {
+        id: 's3_q10', saberId: 'saber3', escena: '🏳️💚🤍💚',
+        pregunta: '¿Qué banderas suelen ondear en el balcón de un Ayuntamiento en Andalucía?',
+        pista: 'La de nuestra localidad, la de Andalucía (verde y blanca) y la de España.',
+        opciones: [
+          { texto: 'La del municipio, la de Andalucía y la de España', emoji: '🏳️' },
+          { texto: 'Una bandera pirata con calavera', emoji: '🏴‍☠️' },
+          { texto: 'Una toalla de playa', emoji: '🏖️' },
+          { texto: 'La bandera de cuadros de las carreras', emoji: '🏁' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Muy bien! En los Ayuntamientos andaluces vemos la bandera local, la verde y blanca de Andalucía y la de España.',
+        explicacionError: 'Los edificios oficiales muestran las banderas que nos representan: la del municipio, la de Andalucía y la de España.'
+      },
+
+      // =====================================================================
+      // SABER 4: PRINCIPALES SERVICIOS PÚBLICOS (10 PREGUNTAS)
+      // =====================================================================
+      {
+        id: 's4_q1', saberId: 'saber4', escena: '🚒🔥👨‍🚒',
+        pregunta: 'Si se produce un incendio en un edificio o en el bosque, ¿a qué servicio de emergencias llamamos?',
+        pista: 'Vienen en un camión rojo con sirena y mangueras de agua.',
+        opciones: [
+          { texto: 'A los Bomberos', emoji: '🚒' },
+          { texto: 'A los jardineros', emoji: '🌻' },
+          { texto: 'A los bibliotecarios', emoji: '📚' },
+          { texto: 'A los carteros', emoji: '✉️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Genial! Los bomberos y bomberas apagan incendios y nos rescatan en situaciones de peligro.',
+        explicacionError: 'Los jardineros riegan plantas, pero para apagar un incendio llamamos siempre a los Bomberos (teléfono 112).'
+      },
+      {
+        id: 's4_q2', saberId: 'saber4', escena: '🚓👮‍♀️🚦',
+        pregunta: '¿Qué servicio público vigila que se cumplan las normas, dirige el tráfico y nos protege?',
+        pista: 'Llevan uniforme y patrullan las calles de la localidad.',
+        opciones: [
+          { texto: 'La Policía Local', emoji: '🚓' },
+          { texto: 'Los cocineros', emoji: '👨‍🍳' },
+          { texto: 'Los pintores', emoji: '🎨' },
+          { texto: 'Los músicos', emoji: '🎻' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Exacto! La Policía Local ayuda a los vecinos, ordena el tráfico y cuida nuestra seguridad.',
+        explicacionError: 'La seguridad ciudadana y el orden del tráfico en la localidad los realiza la Policía Local.'
+      },
+      {
+        id: 's4_q3', saberId: 'saber4', escena: '🏥🩺👩‍⚕️',
+        pregunta: 'Cuando tenemos fiebre o nos hacemos daño, ¿a qué servicio sanitario acudimos?',
+        pista: 'Allí trabajan médicos, médicas y personal de enfermería.',
+        opciones: [
+          { texto: 'Al centro de salud u hospital', emoji: '🏥' },
+          { texto: 'A la estación de autobuses', emoji: '🚌' },
+          { texto: 'Al museo de pintura', emoji: '🖼️' },
+          { texto: 'A la piscina municipal', emoji: '🏊' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Muy bien! Los centros de salud y hospitales son servicios sanitarios públicos que cuidan nuestra salud.',
+        explicacionError: 'Cuando estamos enfermos debemos ir al centro de salud o al hospital para que nos atienda el personal sanitario.'
+      },
+      {
+        id: 's4_q4', saberId: 'saber4', escena: '🏫📚✏️',
+        pregunta: 'Los colegios públicos y las bibliotecas municipales pertenecen a los servicios...',
+        pista: 'Sirven para aprender, leer y estudiar. Empieza por EDU...',
+        opciones: [
+          { texto: 'Servicios educativos y culturales', emoji: '🏫' },
+          { texto: 'Servicios de bomberos', emoji: '🚒' },
+          { texto: 'Servicios de recogida de basura', emoji: '🚛' },
+          { texto: 'Servicios de transporte', emoji: '🚆' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Estupendo! Los colegios y bibliotecas forman parte de los servicios educativos y culturales.',
+        explicacionError: 'En los colegios y bibliotecas aprendemos y leemos, por eso son servicios educativos y culturales.'
+      },
+      {
+        id: 's4_q5', saberId: 'saber4', escena: '🚛🧹♻️',
+        pregunta: '¿Qué hacen los barrenderos y los camiones de recogida de basuras?',
+        pista: 'Gracias a ellos nuestras calles no están sucias.',
+        opciones: [
+          { texto: 'Mantienen limpias las calles y vacían los contenedores', emoji: '🧹' },
+          { texto: 'Reparten cartas por las casas', emoji: '📮' },
+          { texto: 'Apagan incendios en el bosque', emoji: '🔥' },
+          { texto: 'Curan a los animales enfermos', emoji: '🐶' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Fantástico! El servicio de limpieza mantiene sanas y limpias las calles y plazas del municipio.',
+        explicacionError: 'Los barrenderos y camiones de basura realizan el servicio de limpieza para que el municipio esté limpio y sano.'
+      },
+      {
+        id: 's4_q6', saberId: 'saber4', escena: '🚌🚏🎫',
+        pregunta: '¿Para qué sirve el servicio público de autobuses urbanos?',
+        pista: 'Lleva a muchas personas a la vez de un barrio a otro.',
+        opciones: [
+          { texto: 'Para transportar a los vecinos por la localidad', emoji: '🚌' },
+          { texto: 'Para regar los árboles del parque', emoji: '🌳' },
+          { texto: 'Para apagar fuegos', emoji: '🧯' },
+          { texto: 'Para prestar libros de cuentos', emoji: '📖' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Correcto! El transporte público ayuda a moverse por la ciudad y reduce la contaminación de muchos coches.',
+        explicacionError: 'Los autobuses municipales son un servicio de transporte para que las personas viajen cómodamente por la localidad.'
+      },
+      {
+        id: 's4_q7', saberId: 'saber4', escena: '🌳🌷✂️',
+        pregunta: '¿Quiénes cuidan el césped, podan los árboles y plantan flores en los parques públicos?',
+        pista: 'Trabajan rodeados de plantas y flores. Empieza por JAR...',
+        opciones: [
+          { texto: 'Los jardineros y jardineras municipales', emoji: '🌷' },
+          { texto: 'Los conductores de ambulancia', emoji: '🚑' },
+          { texto: 'Los policías', emoji: '👮' },
+          { texto: 'Los bibliotecarios', emoji: '📚' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Muy bien! El servicio de parques y jardines cuida las zonas verdes donde jugamos y respiramos aire fresco.',
+        explicacionError: 'El cuidado de las plantas, árboles y flores de los parques lo realizan los jardineros y jardineras.'
+      },
+      {
+        id: 's4_q8', saberId: 'saber4', escena: '👵🤝❤️',
+        pregunta: '¿A quiénes ayudan especialmente los servicios sociales del Ayuntamiento?',
+        pista: 'Ayudan a personas mayores que viven solas o a familias que necesitan apoyo.',
+        opciones: [
+          { texto: 'A personas mayores o familias que necesitan ayuda', emoji: '🤝' },
+          { texto: 'A los extraterrestres de Marte', emoji: '👽' },
+          { texto: 'A los robots de juguete', emoji: '🤖' },
+          { texto: 'Solo a los coches de carreras', emoji: '🏎️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Qué gran respuesta! Los servicios sociales cuidan y apoyan a los vecinos que más lo necesitan.',
+        explicacionError: 'Los servicios sociales están para apoyar a las personas mayores, personas con discapacidad y familias con necesidades.'
+      },
+      {
+        id: 's4_q9', saberId: 'saber4', escena: '📞1️⃣1️⃣2️⃣',
+        pregunta: '¿Cuál es el número de teléfono gratuito de emergencias en toda España y Andalucía?',
+        pista: 'Son tres números: uno, uno, dos.',
+        opciones: [
+          { texto: 'El 112', emoji: '📞' },
+          { texto: 'El 000', emoji: '0️⃣' },
+          { texto: 'El 999999', emoji: '🔢' },
+          { texto: 'El 555', emoji: '☎️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Excelente! El 112 conecta rápidamente con ambulancias, bomberos y policía en caso de emergencia.',
+        explicacionError: 'Memorízalo bien porque es muy importante: el teléfono único de emergencias es el 112.'
+      },
+      {
+        id: 's4_q10', saberId: 'saber4', escena: '⚽🏊🎭',
+        pregunta: 'Los polideportivos, piscinas municipales y casas de la cultura sirven para...',
+        pista: 'Allí hacemos deporte, teatro, música y actividades en nuestro tiempo libre.',
+        opciones: [
+          { texto: 'Practicar deporte y disfrutar de la cultura', emoji: '⚽' },
+          { texto: 'Comprar pescado fresco', emoji: '🐟' },
+          { texto: 'Arreglar ruedas pinchadas', emoji: '🔧' },
+          { texto: 'Guardar camiones de basura', emoji: '🚛' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Bravo! Los servicios deportivos y culturales nos ayudan a estar sanos y aprender artes y deportes.',
+        explicacionError: 'En los polideportivos y centros culturales los vecinos hacen deporte, talleres y actividades artísticas.'
+      },
+
+      // =====================================================================
+      // SABER 5: IMPORTANCIA DE LAS NORMAS (10 PREGUNTAS)
+      // =====================================================================
+      {
+        id: 's5_q1', saberId: 'saber5', escena: '🚦🚸🚶‍♂️',
+        pregunta: 'Quieres cruzar la calle por un paso de peatones con semáforo. ¿Cuándo debes cruzar?',
+        pista: 'Mira el muñequito del semáforo de peatones.',
+        opciones: [
+          { texto: 'Cuando el muñeco está en verde y los coches parados', emoji: '🟢' },
+          { texto: 'Cuando el muñeco está en rojo', emoji: '🔴' },
+          { texto: 'Corriendo sin mirar a los lados', emoji: '🏃' },
+          { texto: 'Entre dos coches aparcados', emoji: '🚗' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Genial! Siempre cruzamos por el paso de peatones cuando el semáforo está en verde y mirando ambos lados.',
+        explicacionError: '¡Mucho peligro! Nunca cruces en rojo ni sin mirar. Espera siempre al semáforo verde para peatones.'
+      },
+      {
+        id: 's5_q2', saberId: 'saber5', escena: '🗑️🍌♻️',
+        pregunta: 'Te acabas de comer un plátano en el parque. ¿Qué debes hacer con la cáscara?',
+        pista: 'Es nuestro deber mantener limpios los espacios públicos.',
+        opciones: [
+          { texto: 'Tirarla a la papelera o contenedor orgánico', emoji: '🗑️' },
+          { texto: 'Tirarla al suelo para que alguien resbale', emoji: '🍌' },
+          { texto: 'Esconderla debajo de un banco', emoji: 'ベンチ' },
+          { texto: 'Tirarla dentro de la fuente', emoji: '⛲' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Muy bien! Usar las papeleras es un deber ciudadano que mantiene limpio y seguro nuestro parque.',
+        explicacionError: 'Tirar basura al suelo ensucia el municipio y puede provocar caídas. ¡Siempre a la papelera!'
+      },
+      {
+        id: 's5_q3', saberId: 'saber5', escena: '🏫🩺💛',
+        pregunta: 'Ir al colegio a aprender y que te curen en el centro de salud son...',
+        pista: 'Son cosas fundamentales que todos los niños y niñas merecéis.',
+        opciones: [
+          { texto: 'Derechos de los niños y niñas', emoji: '💛' },
+          { texto: 'Castigos injustos', emoji: '😢' },
+          { texto: 'Juguetes de plástico', emoji: '🧸' },
+          { texto: 'Señales de tráfico', emoji: '🛑' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Exacto! La educación y la sanidad son derechos fundamentales de todos los niños y niñas.',
+        explicacionError: 'Recuerda: tener educación, salud y protección son tus derechos como niño o niña.'
+      },
+      {
+        id: 's5_q4', saberId: 'saber5', escena: '🤝🧹📚',
+        pregunta: 'Respetar a los profesores, hacer las tareas y cuidar el material del cole son...',
+        pista: 'Son nuestras responsabilidades para que todo funcione bien.',
+        opciones: [
+          { texto: 'Deberes y responsabilidades', emoji: '✅' },
+          { texto: 'Cosas prohibidas', emoji: '🚫' },
+          { texto: 'Un deporte olímpico', emoji: '🏅' },
+          { texto: 'Una canción de cuna', emoji: '🎶' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Estupendo! Igual que tenemos derechos, también tenemos deberes que ayudan a la buena convivencia.',
+        explicacionError: 'Respetar a los demás y cuidar las cosas comunes son nuestros deberes.'
+      },
+      {
+        id: 's5_q5', saberId: 'saber5', escena: '🐕💩🌳',
+        pregunta: 'Cuando sacamos a pasear a nuestro perro por la calle, ¿qué norma debemos cumplir?',
+        pista: 'Llevamos siempre una bolsita en el bolsillo.',
+        opciones: [
+          { texto: 'Recoger sus excrementos y tirarlos a la papelera', emoji: '🛍️' },
+          { texto: 'Dejarlos en medio de la acera', emoji: '💩' },
+          { texto: 'Dejar que persiga a los coches', emoji: '🚗' },
+          { texto: 'Soltarlo dentro de la biblioteca', emoji: '📚' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Perfecto! Recoger lo que ensucia nuestra mascota es una norma básica de respeto hacia los vecinos.',
+        explicacionError: 'Si tenemos mascota, es nuestro deber recoger sus excrementos para mantener limpias las aceras.'
+      },
+      {
+        id: 's5_q6', saberId: 'saber5', escena: '📚🤫🏛️',
+        pregunta: 'En la biblioteca pública hay personas leyendo y estudiando. ¿Qué norma debemos respetar?',
+        pista: 'No debemos molestar a quienes están concentrados.',
+        opciones: [
+          { texto: 'Hablar en voz baja o guardar silencio y cuidar los libros', emoji: '🤫' },
+          { texto: 'Gritar y saltar encima de las mesas', emoji: '📢' },
+          { texto: 'Pintar encima de los cuentos', emoji: '🖍️' },
+          { texto: 'Poner música a todo volumen', emoji: '🔊' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Bravo! Guardar silencio y cuidar los libros permite que todos disfrutemos de la biblioteca.',
+        explicacionError: 'En la biblioteca hay que estar en silencio y cuidar los libros para que otros niños también puedan leerlos.'
+      },
+      {
+        id: 's5_q7', saberId: 'saber5', escena: '🚌👵💺',
+        pregunta: 'Vas sentado en el autobús público y sube una persona mayor con bastón. ¿Qué es lo correcto?',
+        pista: 'Es una norma de educación, solidaridad y respeto.',
+        opciones: [
+          { texto: 'Cederle el asiento con una sonrisa', emoji: '😊' },
+          { texto: 'Hacerte el dormido para no levantarte', emoji: '😴' },
+          { texto: 'Poner la mochila en el asiento libre', emoji: '🎒' },
+          { texto: 'Reírte de ella', emoji: '😝' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Qué gran corazón! Ceder el asiento a personas mayores, embarazadas o con muletas es una norma de buena convivencia.',
+        explicacionError: 'Las personas mayores o con dificultades para caminar necesitan ir sentadas para no caerse en el autobús.'
+      },
+      {
+        id: 's5_q8', saberId: 'saber5', escena: '🛝🌳🚫',
+        pregunta: '¿Por qué no debemos romper los bancos, columpios o árboles del parque?',
+        pista: 'Son bienes públicos que pertenecen a toda la comunidad.',
+        opciones: [
+          { texto: 'Porque son de todos los vecinos y los necesitamos para disfrutar', emoji: '🌳' },
+          { texto: 'Porque los árboles muerden', emoji: '🦖' },
+          { texto: 'Porque los columpios son de cristal', emoji: '🔮' },
+          { texto: 'Porque nadie va nunca al parque', emoji: '🏜️' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Exacto! El mobiliario urbano y los parques son de todos y debemos cuidarlos como si fueran de nuestra casa.',
+        explicacionError: 'Si rompemos un columpio o un banco, ningún niño o vecino podrá usarlo. ¡Cuidemos lo que es de todos!'
+      },
+      {
+        id: 's5_q9', saberId: 'saber5', escena: '🚲🪖🛣️',
+        pregunta: 'Cuando montamos en bicicleta por el municipio, ¿qué medida de seguridad debemos usar?',
+        pista: 'Protege nuestra cabeza si nos caemos.',
+        opciones: [
+          { texto: 'Ponernos el casco y circular por el carril bici', emoji: '🪖' },
+          { texto: 'Ir con los ojos cerrados', emoji: '🙈' },
+          { texto: 'Ir sin manos por la autopista', emoji: '🛣️' },
+          { texto: 'Subirnos por las paredes', emoji: '🧗' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Genial! El casco nos protege la cabeza y el carril bici nos da un camino seguro para pedalear.',
+        explicacionError: 'Para montar en bici con seguridad es obligatorio usar el casco y respetar los carriles bici y señales.'
+      },
+      {
+        id: 's5_q10', saberId: 'saber5', escena: '🕊️🤝🌍',
+        pregunta: '¿Para qué sirven las normas en nuestra localidad y en el colegio?',
+        pista: 'Imagina qué pasaría si nadie respetara los semáforos ni los turnos.',
+        opciones: [
+          { texto: 'Para vivir en paz, seguros y respetándonos unos a otros', emoji: '🕊️' },
+          { texto: 'Para que todo sea un caos y nadie se entienda', emoji: '🌪️' },
+          { texto: 'Para aburrirnos todo el día', emoji: '🥱' },
+          { texto: 'Para que no haya parques', emoji: '🚫' }
+        ],
+        correcta: 0,
+        explicacionOk: '¡Misión cumplida! Las normas nos protegen y hacen posible una convivencia feliz y justa para todos.',
+        explicacionError: 'Sin normas habría accidentes y peleas. Las normas sirven para que todos vivamos seguros y en armonía.'
+      }
+    ];
+
+    /*************************************************************************
+     * 5. ESTADO DE LA APLICACIÓN Y LÓGICA PRINCIPAL
+     *************************************************************************/
+    const app = {
+      state: {
+        studentName: '',
+        avatar: '🦊',
+        supportMode: 'standard', // 'standard' | 'visual_plus' (etiquetas inclusivas DUA)
+        passThreshold: 50, // Porcentaje mínimo exigido por criterio (50% = 5/10)
+        currentView: 'welcome', // 'welcome' | 'flashcards' | 'mission_select' | 'quiz' | 'report'
+        flashcardFilter: 'all',
+        flashcardIndex: 0,
+        flashcardFlipped: false,
+        // Estado del Quiz
+        quizQueue: [],
+        quizIndex: 0,
+        quizTitle: '',
+        quizMode: 'full', // 'full' (50 preguntas) | 'single' (10 de un saber)
+        answeredCurrent: false,
+        selectedOption: null,
+        // Resultados almacenados por preguntaId -> { saberId, isCorrect }
+        results: {}
+      },
+
+      avatars: [
+        { emoji: '🦊', label: 'Zorro Explorador' },
+        { emoji: '🦉', label: 'Búho Sabio' },
+        { emoji: '🐢', label: 'Tortuga Curiosa' },
+        { emoji: '🦁', label: 'León Valiente' },
+        { emoji: '🐬', label: 'Delfín Alegre' },
+        { emoji: '🐼', label: 'Panda Amigo' }
+      ],
+
+      init() {
+        this.renderCurriculumTable();
+        this.renderWelcome();
+      },
+
+      toggleAutoVoice() {
+        speech.autoEnabled = !speech.autoEnabled;
+        const btn = document.getElementById('btn-auto-voice');
+        const icon = document.getElementById('icon-auto-voice');
+        const label = document.getElementById('label-auto-voice');
+
+        if (speech.autoEnabled) {
+          btn.className = 'flex items-center gap-1.5 px-3 py-2 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition-all bg-sky-100 border-sky-400 text-sky-900 hover:bg-sky-200';
+          icon.className = 'fa-solid fa-volume-high text-base';
+          label.textContent = 'Voz Auto: SÍ';
+          speech.speak('Lectura automática activada');
+        } else {
+          speech.stop();
+          btn.className = 'flex items-center gap-1.5 px-3 py-2 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition-all bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200';
+          icon.className = 'fa-solid fa-volume-off text-base';
+          label.textContent = 'Voz Auto: NO';
+        }
+      },
+
+      setPassThreshold(val) {
+        this.state.passThreshold = parseInt(val, 10) || 50;
+        if (this.state.currentView === 'report') {
+          this.renderReport();
+        }
+      },
+
+      openCurriculumModal() {
+        document.getElementById('curriculum-modal').classList.remove('hidden');
+      },
+
+      closeCurriculumModal() {
+        document.getElementById('curriculum-modal').classList.add('hidden');
+      },
+
+      openHintModal(text) {
+        document.getElementById('hint-text').textContent = text;
+        document.getElementById('hint-modal').classList.remove('hidden');
+        if (speech.autoEnabled) {
+          speech.speak('Pista: ' + text);
+        }
+      },
+
+      closeHintModal() {
+        speech.stop();
+        document.getElementById('hint-modal').classList.add('hidden');
+      },
+
+      renderCurriculumTable() {
+        const container = document.getElementById('curriculum-table-container');
+        container.innerHTML = SABERES_CURRICULO.map(s => `
+          <div class="border-2 border-slate-200 rounded-2xl p-4 bg-slate-50">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span class="font-display font-bold text-lg text-slate-900 flex items-center gap-2">
+                <span class="text-2xl">${s.icono}</span> Saber ${s.numero}: ${s.titulo}
+              </span>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-extrabold text-xs">${s.saberCodigo}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 font-extrabold text-xs">${s.criterioCodigo}</span>
+              </div>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-700 font-semibold mb-2"><strong>Saber Básico:</strong> ${s.saberDescripcion}</p>
+            <p class="text-xs sm:text-sm text-slate-700 font-semibold mb-1"><strong>Competencia Específica:</strong> ${s.competenciaEspecifica}</p>
+            <p class="text-xs sm:text-sm text-emerald-900 font-bold bg-white p-2.5 rounded-xl border border-emerald-200">
+              <strong>Criterio de Evaluación (Orden 30/05/2023):</strong> ${s.criterioDescripcion}
+            </p>
+          </div>
+        `).join('');
+      },
+
+      goHome() {
+        speech.stop();
+        this.state.currentView = 'welcome';
+        this.renderWelcome();
+      },
+
+      /***********************************************************************
+       * VISTA 1: PANTALLA DE BIENVENIDA
+       ***********************************************************************/
+      renderWelcome() {
+        const container = document.getElementById('app-container');
+        const totalAnswered = Object.keys(this.state.results).length;
+
+        container.innerHTML = `
+          <div class="animate-pop max-w-4xl mx-auto">
+            <!-- Cabecera visual atractiva -->
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-emerald-500 p-5 sm:p-8 text-center relative overflow-hidden">
+              <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-xs sm:text-sm mb-3">
+                <span>🟢⚪🟢 CEIP Andalucía · 2.º de Educación Primaria</span>
+              </div>
+
+              <div class="flex justify-center items-center gap-3 text-4xl sm:text-5xl my-2 animate-float">
+                <span>🏘️</span><span>🏛️</span><span>🚒</span><span>🚦</span><span>🏙️</span>
+              </div>
+
+              <h2 class="text-3xl sm:text-5xl font-bold text-slate-900 mt-2 mb-2">
+                ¡Aventura en Nuestro Municipio!
+              </h2>
+              <p class="text-base sm:text-lg font-bold text-slate-600 max-w-2xl mx-auto mb-4">
+                Aprende sobre tu localidad, los pueblos y ciudades, el Ayuntamiento, los servicios públicos y las normas jugando con voz y dibujos.
+              </p>
+
+              <!-- Botón de audio para escuchar la bienvenida -->
+              <button onclick="speech.speak('¡Hola explorador o exploradora! Bienvenido a Aventura en Nuestro Municipio. Escribe tu nombre, elige tu mascota y repasa las tarjetas antes de jugar.', this)"
+                class="mx-auto mb-6 px-5 py-2.5 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-sm sm:text-base inline-flex items-center gap-2 shadow-md btn-3d">
+                <i class="fa-solid fa-volume-high text-lg"></i> Escuchar bienvenida
+              </button>
+
+              <!-- Formulario del Explorador -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-left bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200 mb-6">
+                <!-- Nombre del alumno/a -->
+                <div>
+                  <label for="input-student-name" class="block font-extrabold text-slate-800 text-base mb-2 flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-full bg-emerald-600 text-white inline-flex items-center justify-center text-sm">1</span>
+                    ¿Cómo te llamas?
+                  </label>
+                  <input id="input-student-name" type="text" placeholder="Escribe aquí tu nombre..."
+                    value="${this.escapeHtml(this.state.studentName)}"
+                    oninput="app.state.studentName = this.value"
+                    class="w-full px-4 py-3.5 rounded-2xl border-3 border-emerald-400 focus:border-emerald-600 focus:outline-none text-lg font-extrabold text-slate-900 bg-white shadow-inner" />
+
+                  <!-- Selector de modalidad DUA (etiquetas inclusivas) -->
+                  <div class="mt-4">
+                    <label class="block font-extrabold text-slate-800 text-sm mb-2">
+                      Modo de exploración (Apoyo DUA):
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button type="button" onclick="app.setSupportMode('standard')"
+                        class="p-2.5 rounded-xl border-2 font-extrabold text-xs sm:text-sm text-center transition-all ${this.state.supportMode === 'standard' ? 'bg-emerald-600 text-white border-emerald-700 shadow' : 'bg-white text-slate-700 border-slate-300'}">
+                        🧭 Explorador Normal
+                      </button>
+                      <button type="button" onclick="app.setSupportMode('visual_plus')"
+                        class="p-2.5 rounded-xl border-2 font-extrabold text-xs sm:text-sm text-center transition-all ${this.state.supportMode === 'visual_plus' ? 'bg-amber-500 text-white border-amber-600 shadow' : 'bg-white text-slate-700 border-slate-300'}">
+                        💡 Con Pista Abierta
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Selector de Avatar -->
+                <div>
+                  <label class="block font-extrabold text-slate-800 text-base mb-2 flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-full bg-emerald-600 text-white inline-flex items-center justify-center text-sm">2</span>
+                    Elige tu mascota exploradora:
+                  </label>
+                  <div class="grid grid-cols-3 gap-2.5">
+                    ${this.avatars.map(av => `
+                      <button type="button" onclick="app.selectAvatar('${av.emoji}', '${av.label}')"
+                        class="p-2.5 rounded-2xl border-3 flex flex-col items-center justify-center transition-all ${this.state.avatar === av.emoji ? 'bg-amber-100 border-amber-500 scale-105 shadow-md' : 'bg-white border-slate-200 hover:border-sky-300'}">
+                        <span class="text-3xl sm:text-4xl mb-1">${av.emoji}</span>
+                        <span class="text-[11px] font-extrabold text-slate-700 leading-tight text-center">${av.label.split(' ')[0]}</span>
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones principales de acción -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 1. Flashcards de Vocabulario -->
+                <button onclick="app.startFlashcards()"
+                  class="btn-3d p-4 sm:p-5 rounded-3xl bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 border-b-4 border-amber-700 shadow-lg flex flex-col items-center justify-center gap-1.5">
+                  <span class="text-4xl">🗂️</span>
+                  <span class="font-display text-xl font-bold">1. Flashcards Vocabulario</span>
+                  <span class="text-xs font-extrabold bg-white/70 px-3 py-0.5 rounded-full">Repasa las 20 palabras con voz</span>
+                </button>
+
+                <!-- 2. Elegir Misión por Saber (10 preguntas cada una) -->
+                <button onclick="app.openMissionSelect()"
+                  class="btn-3d p-4 sm:p-5 rounded-3xl bg-gradient-to-b from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border-b-4 border-blue-800 shadow-lg flex flex-col items-center justify-center gap-1.5">
+                  <span class="text-4xl">🗺️</span>
+                  <span class="font-display text-xl font-bold">2. Elegir Misión (5 Saberes)</span>
+                  <span class="text-xs font-extrabold bg-white/20 px-3 py-0.5 rounded-full">10 actividades por cada saber</span>
+                </button>
+
+                <!-- 3. Gran Reto Completo (50 preguntas) -->
+                <button onclick="app.startFullMission()"
+                  class="btn-3d p-4 sm:p-5 rounded-3xl bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white border-b-4 border-emerald-900 shadow-lg flex flex-col items-center justify-center gap-1.5 sm:col-span-2 lg:col-span-1">
+                  <span class="text-4xl">🏆</span>
+                  <span class="font-display text-xl font-bold">3. Reto Completo (50)</span>
+                  <span class="text-xs font-extrabold bg-white/20 px-3 py-0.5 rounded-full">Evaluación completa de la unidad</span>
+                </button>
+              </div>
+
+              <!-- Acceso directo al Boletín si ya hay respuestas registradas -->
+              ${totalAnswered > 0 ? `
+                <div class="mt-5 pt-4 border-t-2 border-slate-100 flex flex-wrap items-center justify-center gap-3">
+                  <span class="text-sm font-extrabold text-emerald-800">
+                    Llevas ${totalAnswered} de 50 actividades completadas.
+                  </span>
+                  <button onclick="app.openReport()"
+                    class="px-5 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-sm shadow-md inline-flex items-center gap-2">
+                    <i class="fa-solid fa-file-signature"></i> Ver Boletín de Evaluación
+                  </button>
+                </div>
+              ` : ''}
+
+              <!-- Autoría destacada en pantalla de inicio -->
+              <div class="mt-6 pt-3 border-t border-slate-200 text-center">
+                <p class="text-xs sm:text-sm font-extrabold text-slate-600">
+                  Recurso educativo diseñado por <span class="text-emerald-700 underline decoration-emerald-400 decoration-2">Carlos H. González Ortega (profesaurio)</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      selectAvatar(emoji, label) {
+        this.state.avatar = emoji;
+        speech.speak(label);
+        this.renderWelcome();
+      },
+
+      setSupportMode(mode) {
+        this.state.supportMode = mode;
+        speech.speak(mode === 'visual_plus' ? 'Modo con pista abierta activado' : 'Modo explorador normal activado');
+        this.renderWelcome();
+      },
+
+      /***********************************************************************
+       * VISTA 2: FLASHCARDS INTERACTIVAS DE VOCABULARIO (20 TARJETAS)
+       ***********************************************************************/
+      startFlashcards() {
+        speech.stop();
+        this.state.currentView = 'flashcards';
+        this.state.flashcardFilter = 'all';
+        this.state.flashcardIndex = 0;
+        this.state.flashcardFlipped = false;
+        this.renderFlashcards();
+      },
+
+      getFilteredFlashcards() {
+        if (this.state.flashcardFilter === 'all') return FLASHCARDS_DATA;
+        return FLASHCARDS_DATA.filter(f => f.saberId === this.state.flashcardFilter);
+      },
+
+      filterFlashcards(saberId) {
+        this.state.flashcardFilter = saberId;
+        this.state.flashcardIndex = 0;
+        this.state.flashcardFlipped = false;
+        this.renderFlashcards();
+      },
+
+      flipFlashcard() {
+        this.state.flashcardFlipped = !this.state.flashcardFlipped;
+        const cards = this.getFilteredFlashcards();
+        const card = cards[this.state.flashcardIndex];
+        if (speech.autoEnabled && card) {
+          if (this.state.flashcardFlipped) {
+            speech.speak(card.palabra + '. ' + card.definicion);
+          } else {
+            speech.speak(card.palabra);
+          }
+        }
+        this.renderFlashcards();
+      },
+
+      nextFlashcard(dir) {
+        const cards = this.getFilteredFlashcards();
+        this.state.flashcardIndex = (this.state.flashcardIndex + dir + cards.length) % cards.length;
+        this.state.flashcardFlipped = false;
+        const card = cards[this.state.flashcardIndex];
+        if (speech.autoEnabled && card) {
+          speech.speak(card.palabra);
+        }
+        this.renderFlashcards();
+      },
+
+      renderFlashcards() {
+        const container = document.getElementById('app-container');
+        const cards = this.getFilteredFlashcards();
+        const card = cards[this.state.flashcardIndex];
+        const saberInfo = SABERES_CURRICULO.find(s => s.id === card.saberId);
+
+        container.innerHTML = `
+          <div class="animate-pop max-w-4xl mx-auto">
+            <!-- Cabecera de Flashcards -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-white p-4 rounded-3xl shadow-md border-2 border-amber-300">
+              <div class="flex items-center gap-3">
+                <span class="text-3xl sm:text-4xl">🗂️</span>
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Tarjetas de Vocabulario</h2>
+                  <p class="text-xs sm:text-sm font-bold text-slate-600">Toca la tarjeta para darle la vuelta y escucha su significado</p>
+                </div>
+              </div>
+              <button onclick="app.openMissionSelect()"
+                class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm sm:text-base shadow btn-3d flex items-center gap-2">
+                <span>¡Listo para jugar!</span> <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+
+            <!-- Filtros por Saber Básico -->
+            <div class="flex flex-wrap gap-2 justify-center mb-5">
+              <button onclick="app.filterFlashcards('all')"
+                class="px-3.5 py-2 rounded-2xl font-extrabold text-xs sm:text-sm border-2 transition-all ${this.state.flashcardFilter === 'all' ? 'bg-slate-800 text-white border-slate-900 shadow' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'}">
+                Todas (20)
+              </button>
+              ${SABERES_CURRICULO.map(s => `
+                <button onclick="app.filterFlashcards('${s.id}')"
+                  class="px-3.5 py-2 rounded-2xl font-extrabold text-xs sm:text-sm border-2 transition-all flex items-center gap-1.5 ${this.state.flashcardFilter === s.id ? 'bg-amber-500 text-white border-amber-600 shadow' : 'bg-white text-slate-700 border-slate-300 hover:bg-amber-50'}">
+                  <span>${s.icono}</span> <span>${s.tituloCorto}</span>
+                </button>
+              `).join('')}
+            </div>
+
+            <!-- Contador -->
+            <div class="text-center mb-3">
+              <span class="inline-block px-4 py-1 rounded-full bg-white border-2 border-amber-400 font-extrabold text-sm text-amber-950 shadow-sm">
+                Tarjeta ${this.state.flashcardIndex + 1} de ${cards.length} · ${saberInfo.icono} ${saberInfo.titulo}
+              </span>
+            </div>
+
+            <!-- Tarjeta Interactiva con efecto Flip -->
+            <div class="max-w-xl mx-auto">
+              <div onclick="app.flipFlashcard()"
+                class="cursor-pointer rounded-3xl shadow-2xl border-4 ${this.state.flashcardFlipped ? 'bg-gradient-to-br from-sky-50 to-indigo-100 border-sky-500' : 'bg-gradient-to-br from-white to-amber-50 border-amber-400'} p-6 sm:p-10 min-h-[320px] sm:min-h-[350px] flex flex-col items-center justify-between text-center transition-all duration-300 hover:scale-[1.01]">
+
+                <div class="w-full flex items-center justify-between">
+                  <span class="px-3 py-1 rounded-xl text-xs font-extrabold ${saberInfo.badgeBg} border">
+                    ${saberInfo.tituloCorto}
+                  </span>
+                  <span class="text-xs font-extrabold text-slate-500 flex items-center gap-1">
+                    <i class="fa-solid fa-rotate"></i> Toca para girar
+                  </span>
+                </div>
+
+                ${!this.state.flashcardFlipped ? `
+                  <!-- CARA FRONTAL: Dibujo grande + Palabra -->
+                  <div class="my-4">
+                    <div class="text-7xl sm:text-8xl mb-4 animate-float">${card.emoji}</div>
+                    <h3 class="text-3xl sm:text-4xl font-bold text-slate-900">${card.palabra}</h3>
+                  </div>
+                  <div class="flex flex-wrap justify-center gap-3 w-full" onclick="event.stopPropagation()">
+                    <button onclick="speech.speak('${card.palabra.replace(/'/g, "\\'")}', this)"
+                      class="px-5 py-3 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-base flex items-center gap-2 shadow btn-3d">
+                      <i class="fa-solid fa-volume-high text-lg"></i> Escuchar palabra
+                    </button>
+                    <button onclick="app.flipFlashcard()"
+                      class="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-base flex items-center gap-2 shadow btn-3d">
+                      <i class="fa-solid fa-eye"></i> Ver significado
+                    </button>
+                  </div>
+                ` : `
+                  <!-- CARA TRASERA: Explicación sencilla para 2.º Primaria -->
+                  <div class="my-4">
+                    <div class="text-5xl mb-2">${card.emoji}</div>
+                    <h3 class="text-2xl sm:text-3xl font-bold text-sky-900 mb-3">${card.palabra}</h3>
+                    <p class="text-lg sm:text-xl font-bold text-slate-800 leading-relaxed bg-white/80 p-4 rounded-2xl border border-sky-200">
+                      ${card.definicion}
+                    </p>
+                  </div>
+                  <div class="flex flex-wrap justify-center gap-3 w-full" onclick="event.stopPropagation()">
+                    <button onclick="speech.speak('${(card.palabra + '. ' + card.definicion).replace(/'/g, "\\'")}', this)"
+                      class="px-5 py-3 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-base flex items-center gap-2 shadow btn-3d">
+                      <i class="fa-solid fa-volume-high text-lg"></i> Escuchar explicación
+                    </button>
+                    <button onclick="app.flipFlashcard()"
+                      class="px-5 py-3 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-base flex items-center gap-2 shadow btn-3d">
+                      <i class="fa-solid fa-rotate-left"></i> Volver
+                    </button>
+                  </div>
+                `}
+              </div>
+
+              <!-- Botones Anterior / Siguiente -->
+              <div class="flex items-center justify-between gap-4 mt-5">
+                <button onclick="app.nextFlashcard(-1)"
+                  class="flex-1 py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 border-2 border-slate-300 text-slate-800 font-extrabold text-base sm:text-lg shadow btn-3d flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-chevron-left"></i> Anterior
+                </button>
+                <button onclick="app.nextFlashcard(1)"
+                  class="flex-1 py-3.5 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 border-b-4 border-amber-700 text-white font-extrabold text-base sm:text-lg shadow btn-3d flex items-center justify-center gap-2">
+                  Siguiente <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      /***********************************************************************
+       * VISTA 3: SELECTOR DE MISIONES (5 SABERES x 10 PREGUNTAS)
+       ***********************************************************************/
+      openMissionSelect() {
+        speech.stop();
+        this.state.currentView = 'mission_select';
+        const container = document.getElementById('app-container');
+        const nameDisplay = this.state.studentName.trim() || 'Explorador/a';
+
+        const totalAnswered = Object.keys(this.state.results).length;
+        const totalCorrect = Object.values(this.state.results).filter(r => r.isCorrect).length;
+
+        container.innerHTML = `
+          <div class="animate-pop max-w-5xl mx-auto">
+            <!-- Cabecera del Explorador -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-lg border-4 border-sky-400 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl bg-amber-100 border-3 border-amber-400 flex items-center justify-center text-4xl shadow">
+                  ${this.state.avatar}
+                </div>
+                <div>
+                  <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">
+                    ¡Hola, ${this.escapeHtml(nameDisplay)}!
+                  </h2>
+                  <p class="text-sm sm:text-base font-bold text-slate-600">
+                    Elige una misión de 10 preguntas o haz el Reto Completo de 50 actividades.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5">
+                <div class="px-4 py-2 rounded-2xl bg-amber-100 border-2 border-amber-300 font-extrabold text-amber-950 text-sm">
+                  ⭐ ${totalCorrect} aciertos (${totalAnswered}/50)
+                </div>
+                <button onclick="app.openReport()"
+                  class="px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-sm shadow btn-3d flex items-center gap-2">
+                  <i class="fa-solid fa-award"></i> Ver Boletín
+                </button>
+              </div>
+            </div>
+
+            <!-- Tarjetas de los 5 Saberes Básicos -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+              ${SABERES_CURRICULO.map(s => {
+                const saberQuestions = PREGUNTAS_BANCO.filter(q => q.saberId === s.id);
+                const answeredCount = saberQuestions.filter(q => this.state.results[q.id] !== undefined).length;
+                const correctCount = saberQuestions.filter(q => this.state.results[q.id]?.isCorrect).length;
+                const isCompleted = answeredCount === 10;
+
+                return `
+                  <div class="bg-white rounded-3xl shadow-lg border-3 border-slate-200 overflow-hidden flex flex-col justify-between hover:border-sky-400 transition-all">
+                    <div>
+                      <div class="bg-gradient-to-r ${s.bgGradient} p-4 text-white flex items-center justify-between">
+                        <span class="text-4xl">${s.icono}</span>
+                        <span class="px-3 py-1 rounded-full bg-white/25 font-extrabold text-xs">
+                          Misión ${s.numero} · 10 retos
+                        </span>
+                      </div>
+                      <div class="p-5">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                          <span class="text-xs font-extrabold text-slate-500">${s.criterioCodigo} (${s.saberCodigo})</span>
+                          ${isCompleted ? '<span class="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">¡Completada!</span>' : ''}
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">${s.titulo}</h3>
+                        <p class="text-xs sm:text-sm font-semibold text-slate-600 mb-4 line-clamp-2">
+                          ${s.saberDescripcion}
+                        </p>
+
+                        <!-- Barra de progreso del Saber -->
+                        <div class="mb-4">
+                          <div class="flex justify-between text-xs font-extrabold mb-1">
+                            <span class="text-slate-600">Progreso: ${answeredCount}/10</span>
+                            <span class="text-emerald-700">Aciertos: ${correctCount}/10</span>
+                          </div>
+                          <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-500 transition-all duration-500" style="width: ${(answeredCount / 10) * 100}%"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="px-5 pb-5 flex gap-2">
+                      <button onclick="speech.speak('Misión ${s.numero}: ${s.titulo}', this)"
+                        class="p-3 rounded-2xl bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold" title="Escuchar título">
+                        <i class="fa-solid fa-volume-high"></i>
+                      </button>
+                      <button onclick="app.startSingleSaberMission('${s.id}')"
+                        class="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r ${s.bgGradient} text-white font-extrabold text-base shadow btn-3d flex items-center justify-center gap-2">
+                        <span>${answeredCount > 0 ? 'Repetir Misión' : 'Jugar Misión'}</span>
+                        <i class="fa-solid fa-play"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+
+              <!-- Tarjeta especial: Gran Reto Completo 50 Preguntas -->
+              <div class="bg-gradient-to-br from-emerald-600 to-teal-800 text-white rounded-3xl shadow-xl p-6 flex flex-col justify-between border-4 border-amber-300">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-5xl">🏆</span>
+                    <span class="px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-extrabold text-xs">
+                      50 Actividades
+                    </span>
+                  </div>
+                  <h3 class="text-2xl font-bold mb-2">Gran Misión Final</h3>
+                  <p class="text-sm font-semibold text-emerald-100 mb-4">
+                    Recorre los 5 saberes seguidos (10 preguntas de cada bloque) y consigue tu Diploma y Boletín Oficial de Explorador.
+                  </p>
+                </div>
+                <button onclick="app.startFullMission()"
+                  class="w-full py-3.5 px-5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-lg shadow-lg btn-3d flex items-center justify-center gap-2">
+                  <span>¡Empezar Reto Completo!</span>
+                  <i class="fa-solid fa-rocket"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      startSingleSaberMission(saberId) {
+        const saber = SABERES_CURRICULO.find(s => s.id === saberId);
+        const questions = PREGUNTAS_BANCO.filter(q => q.saberId === saberId);
+        this.state.quizQueue = questions;
+        this.state.quizIndex = 0;
+        this.state.quizTitle = `Misión ${saber.numero}: ${saber.titulo}`;
+        this.state.quizMode = 'single';
+        this.state.answeredCurrent = false;
+        this.state.selectedOption = null;
+        this.state.currentView = 'quiz';
+        this.renderQuiz();
+      },
+
+      startFullMission() {
+        this.state.quizQueue = [...PREGUNTAS_BANCO]; // Las 50 preguntas ordenadas por los 5 saberes
+        this.state.quizIndex = 0;
+        this.state.quizTitle = 'Gran Reto del Municipio (50 actividades)';
+        this.state.quizMode = 'full';
+        this.state.answeredCurrent = false;
+        this.state.selectedOption = null;
+        this.state.currentView = 'quiz';
+        this.renderQuiz();
+      },
+
+      /***********************************************************************
+       * VISTA 4: MOTOR DE ACTIVIDADES GAMIFICADAS (QUIZ CON VOZ Y FEEDBACK)
+       ***********************************************************************/
+      renderQuiz() {
+        const container = document.getElementById('app-container');
+        const q = this.state.quizQueue[this.state.quizIndex];
+        const saber = SABERES_CURRICULO.find(s => s.id === q.saberId);
+        const totalQ = this.state.quizQueue.length;
+        const progressPct = Math.round(((this.state.quizIndex + (this.state.answeredCurrent ? 1 : 0)) / totalQ) * 100);
+        const totalStars = Object.values(this.state.results).filter(r => r.isCorrect).length;
+
+        // Lectura automática de la pregunta al cargarla si no ha sido respondida aún
+        if (!this.state.answeredCurrent && speech.autoEnabled) {
+          setTimeout(() => {
+            if (!this.state.answeredCurrent && this.state.currentView === 'quiz') {
+              speech.speak(q.pregunta);
+            }
+          }, 250);
+        }
+
+        container.innerHTML = `
+          <div class="animate-pop max-w-4xl mx-auto">
+            <!-- Barra superior de progreso de la misión -->
+            <div class="bg-white rounded-3xl p-4 shadow-md border-2 border-slate-200 mb-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2">
+                  <button onclick="app.openMissionSelect()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm">
+                    <i class="fa-solid fa-arrow-left"></i> Misiones
+                  </button>
+                  <span class="px-3 py-1 rounded-xl text-xs sm:text-sm font-extrabold ${saber.badgeBg} border">
+                    ${saber.icono} ${saber.tituloCorto} (${saber.criterioCodigo})
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <span class="font-extrabold text-sm text-amber-600 bg-amber-50 px-3 py-1 rounded-xl border border-amber-300">
+                    ⭐ ${totalStars} Estrellas
+                  </span>
+                  <span class="font-extrabold text-sm text-slate-800 bg-slate-100 px-3 py-1 rounded-xl">
+                    Pregunta ${this.state.quizIndex + 1} / ${totalQ}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Barra visual de progreso -->
+              <div class="w-full h-3.5 bg-slate-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-emerald-400 to-sky-500 transition-all duration-500 rounded-full" style="width: ${progressPct}%"></div>
+              </div>
+            </div>
+
+            <!-- Tarjeta Principal de la Pregunta -->
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-sky-400 p-5 sm:p-8">
+              <!-- Escena Visual Grande + Botones de Audio y Pista DUA -->
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-sky-50 via-emerald-50 to-amber-50 p-4 sm:p-5 rounded-2xl border-2 border-sky-200 mb-5">
+                <div class="text-5xl sm:text-6xl tracking-widest bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-200 select-none">
+                  ${q.escena}
+                </div>
+
+                <div class="flex flex-wrap justify-center sm:justify-end gap-2.5">
+                  <!-- Botón gigante para leer pregunta -->
+                  <button onclick="speech.speak('${q.pregunta.replace(/'/g, "\\'")}', this)"
+                    class="px-5 py-3.5 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-base sm:text-lg shadow-md btn-3d flex items-center gap-2">
+                    <i class="fa-solid fa-volume-high text-xl"></i>
+                    <span>Escuchar pregunta</span>
+                  </button>
+
+                  <!-- Botón Pista DUA -->
+                  <button onclick="app.openHintModal('${q.pista.replace(/'/g, "\\'")}')"
+                    class="px-4 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-base shadow-md btn-3d flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-lg"></i>
+                    <span>Pista</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pista abierta automáticamente si el alumno eligió "Con Pista Abierta" -->
+              ${this.state.supportMode === 'visual_plus' ? `
+                <div class="mb-4 p-3 rounded-2xl bg-amber-50 border-2 border-amber-300 flex items-center justify-between gap-2">
+                  <p class="text-sm font-extrabold text-amber-950">💡 Pista DUA: ${q.pista}</p>
+                  <button onclick="speech.speak('${q.pista.replace(/'/g, "\\'")}', this)" class="p-2 rounded-xl bg-amber-200 text-amber-950">
+                    <i class="fa-solid fa-volume-high"></i>
+                  </button>
+                </div>
+              ` : ''}
+
+              <!-- Enunciado de la pregunta -->
+              <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 leading-snug mb-6 text-center sm:text-left">
+                ${q.pregunta}
+              </h3>
+
+              <!-- 4 Opciones Visuales con botón de altavoz independiente -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${q.opciones.map((opt, idx) => {
+                  const letras = ['A', 'B', 'C', 'D'];
+                  let cardStyle = 'bg-white border-slate-300 hover:border-sky-500 hover:bg-sky-50';
+                  let badgeStyle = 'bg-slate-200 text-slate-800';
+
+                  if (this.state.answeredCurrent) {
+                    if (idx === q.correcta) {
+                      cardStyle = 'bg-emerald-100 border-emerald-600 ring-4 ring-emerald-200';
+                      badgeStyle = 'bg-emerald-600 text-white';
+                    } else if (idx === this.state.selectedOption && idx !== q.correcta) {
+                      cardStyle = 'bg-rose-100 border-rose-500 opacity-90';
+                      badgeStyle = 'bg-rose-600 text-white';
+                    } else {
+                      cardStyle = 'bg-slate-50 border-slate-200 opacity-60';
+                    }
+                  }
+
+                  return `
+                    <div class="rounded-2xl border-3 ${cardStyle} p-3 sm:p-4 transition-all flex items-center justify-between gap-3 shadow-sm">
+                      <!-- Área pulsable para elegir respuesta -->
+                      <button type="button"
+                        ${this.state.answeredCurrent ? 'disabled' : ''}
+                        onclick="app.submitAnswer(${idx})"
+                        class="flex-1 flex items-center gap-3 text-left focus:outline-none">
+                        <span class="w-9 h-9 rounded-xl ${badgeStyle} font-extrabold flex items-center justify-center text-base shrink-0">
+                          ${letras[idx]}
+                        </span>
+                        <span class="text-3xl sm:text-4xl shrink-0">${opt.emoji}</span>
+                        <span class="font-extrabold text-base sm:text-lg text-slate-900 leading-tight">
+                          ${opt.texto}
+                        </span>
+                      </button>
+
+                      <!-- Botón de audio individual para escuchar la opción antes de marcarla -->
+                      <button type="button"
+                        onclick="speech.speak('Opción ${letras[idx]}: ${opt.texto.replace(/'/g, "\\'")}', this)"
+                        title="Escuchar opción ${letras[idx]}"
+                        class="p-3 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold shrink-0 shadow-sm"
+                        aria-label="Escuchar opción ${letras[idx]}">
+                        <i class="fa-solid fa-volume-high text-lg"></i>
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- PANEL DE RETROALIMENTACIÓN FORMATIVA INMEDIATA (Tras responder) -->
+              ${this.state.answeredCurrent ? this.renderFeedbackBanner(q) : ''}
+            </div>
+          </div>
+        `;
+      },
+
+      submitAnswer(optionIdx) {
+        if (this.state.answeredCurrent) return;
+        const q = this.state.quizQueue[this.state.quizIndex];
+        const isCorrect = optionIdx === q.correcta;
+
+        this.state.answeredCurrent = true;
+        this.state.selectedOption = optionIdx;
+        this.state.results[q.id] = {
+          saberId: q.saberId,
+          isCorrect: isCorrect
+        };
+
+        const feedbackText = isCorrect ? q.explicacionOk : q.explicacionError;
+        if (speech.autoEnabled) {
+          speech.speak(feedbackText);
+        }
+
+        this.renderQuiz();
+      },
+
+      renderFeedbackBanner(q) {
+        const isCorrect = this.state.selectedOption === q.correcta;
+        const feedbackText = isCorrect ? q.explicacionOk : q.explicacionError;
+        const isLast = this.state.quizIndex >= this.state.quizQueue.length - 1;
+
+        return `
+          <div class="mt-6 p-5 rounded-3xl border-4 animate-pop ${isCorrect ? 'bg-emerald-50 border-emerald-500' : 'bg-amber-50 border-amber-500'}">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-start gap-3.5 text-center sm:text-left">
+                <div class="text-5xl shrink-0">${isCorrect ? '🌟🎉' : '🤗💡'}</div>
+                <div>
+                  <h4 class="text-xl sm:text-2xl font-bold ${isCorrect ? 'text-emerald-900' : 'text-amber-950'} mb-1">
+                    ${isCorrect ? '¡Excelente trabajo!' : '¡No pasa nada, así aprendemos!'}
+                  </h4>
+                  <p class="text-base sm:text-lg font-bold text-slate-800 leading-snug">
+                    ${feedbackText}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-center gap-3 shrink-0">
+                <button onclick="speech.speak('${feedbackText.replace(/'/g, "\\'")}', this)"
+                  class="px-4 py-3 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-sm flex items-center gap-2 shadow">
+                  <i class="fa-solid fa-volume-high"></i> Repetir voz
+                </button>
+
+                <button onclick="app.nextQuestion()"
+                  class="px-6 py-3.5 rounded-2xl ${isCorrect ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-500 hover:bg-amber-600'} text-white font-extrabold text-base sm:text-lg shadow-lg btn-3d flex items-center gap-2">
+                  <span>${isLast ? 'Ver Resultados' : 'Siguiente pregunta'}</span>
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      nextQuestion() {
+        speech.stop();
+        if (this.state.quizIndex < this.state.quizQueue.length - 1) {
+          this.state.quizIndex++;
+          this.state.answeredCurrent = false;
+          this.state.selectedOption = null;
+          this.renderQuiz();
+        } else {
+          // Si completó una misión suelta, volver a misiones o ir al boletín si ya completó todo
+          const totalAnswered = Object.keys(this.state.results).length;
+          if (this.state.quizMode === 'full' || totalAnswered >= 50) {
+            this.openReport();
+          } else {
+            this.openMissionSelect();
+          }
+        }
+      },
+
+      /***********************************************************************
+       * VISTA 5: INFORME DE EVALUACIÓN CRITERIAL (ORDEN 30 DE MAYO DE 2023)
+       ***********************************************************************/
+      openReport() {
+        speech.stop();
+        this.state.currentView = 'report';
+        this.renderReport();
+      },
+
+      getLomloeGrade(percentage) {
+        if (percentage < this.state.passThreshold) {
+          return { label: 'INSUFICIENTE (No supera mínimos)', badge: 'bg-rose-100 text-rose-900 border-rose-400', passed: false };
+        }
+        if (percentage < 60) {
+          return { label: 'SUFICIENTE (Supera mínimos)', badge: 'bg-amber-100 text-amber-900 border-amber-400', passed: true };
+        }
+        if (percentage < 70) {
+          return { label: 'BIEN (Supera criterio)', badge: 'bg-sky-100 text-sky-900 border-sky-400', passed: true };
+        }
+        if (percentage < 90) {
+          return { label: 'NOTABLE (Supera criterio)', badge: 'bg-emerald-100 text-emerald-900 border-emerald-400', passed: true };
+        }
+        return { label: 'SOBRESALIENTE (Excelente dominio)', badge: 'bg-emerald-200 text-emerald-950 border-emerald-600', passed: true };
+      },
+
+      renderReport() {
+        const container = document.getElementById('app-container');
+        const nameDisplay = this.state.studentName.trim() || 'Alumno/a de 2.º de Primaria';
+        const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        // Calcular estadísticas por cada uno de los 5 saberes y global
+        let totalQuestions = 50;
+        let totalAnswered = 0;
+        let totalCorrect = 0;
+        let allCriteriaPassed = true;
+
+        const saberesStats = SABERES_CURRICULO.map(s => {
+          const qs = PREGUNTAS_BANCO.filter(q => q.saberId === s.id);
+          const answered = qs.filter(q => this.state.results[q.id] !== undefined).length;
+          const correct = qs.filter(q => this.state.results[q.id]?.isCorrect).length;
+          const pct = Math.round((correct / qs.length) * 100);
+          const gradeInfo = this.getLomloeGrade(pct);
+
+          totalAnswered += answered;
+          totalCorrect += correct;
+          if (!gradeInfo.passed) allCriteriaPassed = false;
+
+          return {
+            ...s,
+            answered,
+            correct,
+            total: qs.length,
+            pct,
+            gradeInfo
+          };
+        });
+
+        const globalPct = Math.round((totalCorrect / totalQuestions) * 100);
+        const globalGrade = this.getLomloeGrade(globalPct);
+        const superaMinimosExigidos = globalGrade.passed && allCriteriaPassed;
+
+        const weakSaberes = saberesStats.filter(s => !s.gradeInfo.passed);
+
+        // Texto resumen para lectura en voz alta
+        const audioReportSummary = `Informe de evaluación de ${nameDisplay}. Has conseguido ${totalCorrect} aciertos de 50 actividades, lo que supone un ${globalPct} por ciento. Resultado global: ${superaMinimosExigidos ? 'Supera todos los criterios de evaluación y alcanza los mínimos exigidos para segundo de Primaria.' : 'Necesita reforzar algunos saberes básicos para superar todos los criterios mínimos.'}`;
+
+        container.innerHTML = `
+          <div class="animate-pop max-w-5xl mx-auto">
+            <!-- Barra de acciones superiores (no se imprime) -->
+            <div class="no-print flex flex-wrap items-center justify-between gap-3 mb-5 bg-white p-4 rounded-3xl shadow-md border-2 border-slate-200">
+              <div class="flex flex-wrap gap-2">
+                <button onclick="app.openMissionSelect()" class="px-4 py-2.5 rounded-2xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-extrabold text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-arrow-left"></i> Volver a Misiones
+                </button>
+                <button onclick="speech.speak('${audioReportSummary.replace(/'/g, "\\'")}', this)"
+                  class="px-4 py-2.5 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-sm flex items-center gap-2 shadow">
+                  <i class="fa-solid fa-volume-high"></i> Escuchar Informe
+                </button>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button onclick="window.print()"
+                  class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm flex items-center gap-2 shadow btn-3d">
+                  <i class="fa-solid fa-print"></i> Imprimir / Guardar PDF
+                </button>
+                <button onclick="app.resetProgress()"
+                  class="px-4 py-2.5 rounded-2xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-extrabold text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-rotate-right"></i> Reiniciar
+                </button>
+              </div>
+            </div>
+
+            <!-- BOLETÍN OFICIAL DE EVALUACIÓN (DISEÑO LIMPIO E IMPRIMIBLE) -->
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-emerald-600 p-6 sm:p-8 print-card">
+              <!-- Encabezado institucional -->
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b-4 border-emerald-600 pb-5 mb-6">
+                <div class="flex items-center gap-4 text-center sm:text-left">
+                  <div class="w-16 h-16 rounded-2xl bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center text-4xl">
+                    ${this.state.avatar}
+                  </div>
+                  <div>
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 block">
+                      CEIP Andalucía · Primer Ciclo Educación Primaria (2.º Curso)
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">
+                      Informe de Evaluación Criterial (LOMLOE)
+                    </h2>
+                    <p class="text-xs sm:text-sm font-bold text-slate-600">
+                      Área: Conocimiento del Medio Natural, Social y Cultural · Orden de 30 de mayo de 2023
+                    </p>
+                  </div>
+                </div>
+
+                <div class="text-center sm:text-right bg-slate-50 px-4 py-3 rounded-2xl border border-slate-200">
+                  <p class="text-xs font-bold text-slate-500">ALUMNO/A:</p>
+                  <p class="text-lg font-extrabold text-slate-900">${this.escapeHtml(nameDisplay)}</p>
+                  <p class="text-xs font-bold text-slate-500 mt-1">Fecha: ${today}</p>
+                </div>
+              </div>
+
+              <!-- DICTAMEN GLOBAL DE SUPERACIÓN DE MÍNIMOS -->
+              <div class="rounded-3xl p-5 sm:p-6 mb-6 border-3 ${superaMinimosExigidos ? 'bg-emerald-50 border-emerald-500' : 'bg-amber-50 border-amber-500'}">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div class="flex items-center gap-4 text-center md:text-left">
+                    <div class="text-5xl sm:text-6xl">${superaMinimosExigidos ? '🏆' : '📘'}</div>
+                    <div>
+                      <span class="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase mb-1 ${superaMinimosExigidos ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-slate-950'}">
+                        Dictamen Final de Criterios Mínimos (Umbral: ${this.state.passThreshold}%)
+                      </span>
+                      <h3 class="text-xl sm:text-2xl font-bold text-slate-900">
+                        ${superaMinimosExigidos
+                          ? 'SUPERA LOS CRITERIOS DE EVALUACIÓN Y ALCANZA LOS MÍNIMOS EXIGIDOS'
+                          : 'NO ALCANZA AÚN TODOS LOS MÍNIMOS EXIGIDOS (REQUIERE REFUERZO)'}
+                      </h3>
+                      <p class="text-sm font-bold text-slate-700 mt-1">
+                        Puntuación global: <strong>${totalCorrect} de 50 aciertos (${globalPct}%)</strong> · Actividades realizadas: ${totalAnswered}/50 · Calificación: <strong>${globalGrade.label}</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DESGLOSE POR CRITERIOS DE EVALUACIÓN Y SABERES BÁSICOS -->
+              <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-emerald-600"></i>
+                Desglose por Criterios de Evaluación (Orden de 30 de mayo de 2023)
+              </h3>
+
+              <div class="space-y-4 mb-6">
+                ${saberesStats.map(s => `
+                  <div class="border-2 rounded-2xl p-4 print-card ${s.gradeInfo.passed ? 'border-slate-200 bg-white' : 'border-rose-300 bg-rose-50/40'}">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2">
+                      <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                          <span class="text-2xl">${s.icono}</span>
+                          <h4 class="font-bold text-lg text-slate-900">Saber ${s.numero}: ${s.titulo}</h4>
+                          <span class="px-2.5 py-0.5 rounded-lg bg-sky-100 text-sky-900 font-extrabold text-xs">${s.criterioCodigo}</span>
+                          <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-extrabold text-xs">${s.saberCodigo}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 font-semibold">${s.criterioDescripcion}</p>
+                      </div>
+
+                      <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <span class="px-3 py-1.5 rounded-xl bg-slate-100 font-extrabold text-sm text-slate-900">
+                          ${s.correct} / ${s.total} (${s.pct}%)
+                        </span>
+                        <span class="px-3 py-1.5 rounded-xl border font-extrabold text-xs ${s.gradeInfo.badge}">
+                          ${s.gradeInfo.passed ? '✅ SUPERA' : '⚠️ NO SUPERA'} · ${s.gradeInfo.label.split(' ')[0]}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Barra visual -->
+                    <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden mt-2">
+                      <div class="h-full ${s.gradeInfo.passed ? 'bg-emerald-500' : 'bg-rose-500'}" style="width: ${s.pct}%"></div>
+                    </div>
+
+                    ${!s.gradeInfo.passed ? `
+                      <div class="no-print mt-3 flex justify-end">
+                        <button onclick="app.startSingleSaberMission('${s.id}')"
+                          class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs flex items-center gap-1.5 shadow">
+                          <i class="fa-solid fa-rotate-right"></i> Reforzar este saber ahora (10 actividades)
+                        </button>
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- RECOMENDACIONES PERSONALIZADAS DUA PARA FAMILIA Y DOCENTE -->
+              <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-5 mb-4 print-card">
+                <h4 class="font-bold text-sky-950 text-base mb-2 flex items-center gap-2">
+                  <i class="fa-solid fa-comment-dots text-sky-600"></i> Orientaciones Pedagógicas y de Refuerzo (DUA)
+                </h4>
+                ${weakSaberes.length === 0 ? `
+                  <p class="text-sm font-bold text-emerald-900">
+                    ¡Enhorabuena! El alumno/a ha superado todos los criterios de evaluación establecidos para la unidad didáctica sobre la localidad, el municipio y la convivencia. Se recomienda seguir reforzando la observación directa de su entorno cercano en paseos familiares.
+                  </p>
+                ` : `
+                  <p class="text-sm font-bold text-slate-800 mb-2">
+                    Para consolidar los aprendizajes mínimos de 2.º de Primaria, se recomienda repasar las <strong>Flashcards de Vocabulario con audio</strong> y repetir las misiones de los siguientes saberes:
+                  </p>
+                  <ul class="list-disc list-inside text-sm font-extrabold text-rose-800 space-y-1">
+                    ${weakSaberes.map(w => `<li>${w.icono} ${w.titulo} (${w.criterioCodigo} - ${w.correct}/10 aciertos)</li>`).join('')}
+                  </ul>
+                `}
+              </div>
+
+              <!-- Pie del informe oficial con autoría -->
+              <div class="pt-4 border-t-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-slate-600">
+                <span>Aplicación educativa gamificada DUA · Creada por Carlos H. González Ortega (profesaurio)</span>
+                <span>Referencia: Orden de 30 de mayo de 2023 (BOJA)</span>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      resetProgress() {
+        this.state.results = {};
+        this.state.quizIndex = 0;
+        this.state.answeredCurrent = false;
+        this.state.selectedOption = null;
+        speech.speak('Progreso reiniciado. ¡Listos para una nueva aventura!');
+        this.openMissionSelect();
+      },
+
+      escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+    };
+
+    // Inicializar aplicación tras cargar el DOM
+    window.addEventListener('DOMContentLoaded', () => {
+      app.init();
+    });
+  </script>
+</body>
+</html>
